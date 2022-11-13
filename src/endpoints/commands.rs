@@ -38,13 +38,3 @@ pub fn construct_curl_endpoint(
         url = url
     )
 }
-
-pub fn get_templates(
-    endpoint: String,
-    method: String,
-    data: Option<String>,
-    base_url: Option<String>,
-    headers: Option<Vec<String>>,
-) {
-
-} 

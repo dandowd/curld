@@ -14,6 +14,11 @@ pub struct GlobalSettings {
     pub module_settings: HashMap<String, Value>
 }
 
+/// Gets module's settings
+///
+/// # Panics
+/// If module has not created default settings, or if the module settings cannot be parsed
+/// Panics if .
 pub fn get_module_settings<T: de::DeserializeOwned>(module_name: &String) -> T {
    let global_settings = get_global_settings();
    let module_settings = match global_settings.module_settings.get(module_name) {
@@ -29,6 +34,12 @@ pub fn get_module_settings<T: de::DeserializeOwned>(module_name: &String) -> T {
    module_settings
 } 
 
+
+/// Gets global settings
+///
+/// # Panics
+/// If global settings cannot be parsed 
+/// Panics if .
 pub fn get_global_settings() -> GlobalSettings {
     let global_settings_dir = get_config_dir();
     let global_settings_file = format!("{dir}/curld-settings.json", dir = global_settings_dir);
@@ -40,6 +51,11 @@ pub fn get_global_settings() -> GlobalSettings {
     }
 }
 
+/// Gets config dir and converts path_buf to string
+///
+/// # Panics
+/// If the OS config directory cannot be found or path_buf cannot be converted to string
+/// Panics if .
 fn get_config_dir() -> String {
     let path_buf = match dirs::config_dir() {
         Some(dir) => dir,

@@ -42,6 +42,6 @@ fn get_file(file_loc: &String) -> File {
         .open(file_loc);
     match file_result {
         Ok(file) => file,
-        Err(error) => panic!("Error occurred while tyring to overwrite file: {:?}", error),
+        Err(error) => panic!("Error occurred while trying to open file: {:?}", error),
     }
 }

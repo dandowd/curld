@@ -10,7 +10,7 @@ pub struct Templates {
 
 #[derive(Debug)]
 pub struct InputError {
-    pub details: String
+    pub details: String,
 }
 
 pub fn construct_curl_endpoint(
@@ -58,21 +58,32 @@ fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError>
     loop {
         let start_index = match alt_templated.find("{") {
             Some(index) => index,
-            None => break
+            None => break,
         };
 
-        let end_index = match alt_templated.find("}"){
+        let end_index = match alt_templated.find("}") {
             Some(index) => index,
-            None => return Err(InputError {
-                details: String::from("Parsing error in template: found opening brace but no closing")
-            })
+            None => {
+                return Err(InputError {
+                    details: String::from(
+                        "Parsing error in template: found opening brace but no closing",
+                    ),
+                })
+            }
+        };
+
+        match alt_templated[start_index + 1..end_index].find("{") {
+            Some(index) => return Err(InputError {
+                details: format!("Parsing error in template: found open bracket at {index}, expecting closing bracket", index = index)
+            }),
+            None => 0
         };
 
         let template_name = String::from(&alt_templated[start_index + 1..end_index]);
         names.insert(template_name);
 
         alt_templated = String::from(&alt_templated[end_index + 1..]);
-    };
+    }
 
     Ok(Vec::from_iter(names))
 }
@@ -98,7 +109,7 @@ mod tests {
 
         match extract_template_names(&test_str) {
             Ok(_) => assert!(false),
-            Err(_) => assert!(true)
+            Err(_) => assert!(true),
         };
     }
 }

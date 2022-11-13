@@ -91,4 +91,14 @@ mod tests {
         assert_eq!(names.get(0).unwrap(), "base_url");
         assert_eq!(names.get(1).unwrap(), "endpoint")
     }
+
+    #[test]
+    fn extract_template_names_should_error_on_bad_parse() {
+        let test_str = String::from("https://{base_url/v1/{endpoint}");
+
+        match extract_template_names(&test_str) {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true)
+        };
+    }
 }

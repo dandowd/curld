@@ -1,2 +1,2 @@
-mod global_settings;
 mod file;
+pub mod global_settings;

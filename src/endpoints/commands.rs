@@ -1,16 +1,29 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 
 pub struct Templates {
     endpoint: Option<Vec<String>>,
-    method: Option<String>,
     data: Option<Vec<String>>,
     base_url: Option<Vec<String>>,
     headers: Option<Vec<String>>,
 }
 
-#[derive(Debug)]
-pub struct InputError {
-    pub details: String,
+pub fn get_template_keys(
+    endpoint: &String,
+    data: &String,
+    base_url: &String,
+    headers: &String,
+) -> Templates {
+    let endpoint_templates = extract_template_names(endpoint).ok();
+    let data_templates = extract_template_names(data).ok();
+    let base_url_templates = extract_template_names(base_url).ok();
+    let header_templates = extract_template_names(headers).ok();
+
+    Templates {
+        endpoint: endpoint_templates,
+        data: data_templates,
+        base_url: base_url_templates,
+        headers: header_templates,
+    }
 }
 
 pub fn construct_curl_endpoint(
@@ -51,12 +64,12 @@ pub fn construct_curl_endpoint(
     )
 }
 
-fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError> {
+fn extract_template_names(templated: &String) -> Result<Vec<String>, String> {
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
     let mut alt_templated = templated.clone();
     loop {
-        let start_index = match alt_templated.find("{") {
+        let start_index = match alt_templated.find("${") {
             Some(index) => index,
             None => break,
         };
@@ -64,25 +77,23 @@ fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError>
         let end_index = match alt_templated.find("}") {
             Some(index) => index,
             None => {
-                return Err(InputError {
-                    details: String::from(
-                        "Parsing error in template: found opening brace but no closing",
-                    ),
-                })
+                return Err(
+                    "Parsing error in template: found opening brace but no closing".to_string(),
+                )
             }
         };
 
-        match alt_templated[start_index + 1..end_index].find("{") {
-            Some(index) => return Err(InputError {
-                details: format!(
-                            "Parsing error in template: found open bracket at {index}, expecting closing bracket", 
-                             index = index
-                        )
-            }),
+        match alt_templated[start_index + 2..end_index].find("${") {
+            Some(index) => return Err(
+                format!(
+                        "Parsing error in template: found open bracket at {index}, expecting closing bracket", 
+                         index = index
+                    )
+                ),
             None => 0
         };
 
-        let template_name = String::from(&alt_templated[start_index + 1..end_index]);
+        let template_name = String::from(&alt_templated[start_index + 2..end_index]);
         names.insert(template_name);
 
         alt_templated = String::from(&alt_templated[end_index + 1..]);
@@ -94,9 +105,9 @@ fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError>
 fn insert_template_values(templated_str: &String, value_map: HashMap<String, String>) -> String {
     let mut cloned_templated_str = templated_str.clone();
     for (key, value) in value_map {
-        let replace_key = format!("{{{0}}}", key);
+        let replace_key = format!("${{{0}}}", key);
         cloned_templated_str = cloned_templated_str.replace(&replace_key, &value);
-    } 
+    }
 
     cloned_templated_str
 }
@@ -107,7 +118,7 @@ mod tests {
 
     #[test]
     fn extract_template_names_should_parse() {
-        let test_str = String::from("https://{base_url}/v1/{endpoint}");
+        let test_str = String::from("https://${base_url}/v1/${endpoint}");
 
         let mut names = extract_template_names(&test_str).unwrap();
         // Order the vector because the HashSet order is non-deterministic
@@ -118,7 +129,7 @@ mod tests {
 
     #[test]
     fn extract_template_names_should_error_on_bad_parse() {
-        let test_str = String::from("https://{base_url/v1/{endpoint}");
+        let test_str = String::from("https://${base_url/v1/${endpoint}");
 
         match extract_template_names(&test_str) {
             Ok(_) => assert!(false),
@@ -128,7 +139,7 @@ mod tests {
 
     #[test]
     fn insert_template_values_succeeds() {
-        let test_str = String::from("https://{base_url}/v1/{resource}/{resouceId}");
+        let test_str = String::from("https://${base_url}/v1/${resource}/${resouceId}");
         let mut value_map: HashMap<String, String> = HashMap::new();
         value_map.insert("base_url".to_string(), "something.com".to_string());
         value_map.insert("resource".to_string(), "user".to_string());
@@ -136,5 +147,39 @@ mod tests {
 
         let replaced_str = insert_template_values(&test_str, value_map);
         assert_eq!(replaced_str, "https://something.com/v1/user/uuid")
+    }
+
+    #[test]
+    fn get_template_keys_returns_templates() {
+        let base_url = String::from("https://${base_url}/${env}/v1");
+        let endpoint = String::from("/${resouce}/${resourceId}");
+        let headers =
+            String::from("--header 'content-type: ${type} --header x-api-key: ${api-key}'");
+        let data = String::from("{ \"resourceId\": \"${resourceId}\", \"number\": ${number} }");
+
+        let templates = get_template_keys(&endpoint, &data, &base_url, &headers);
+        assert!(templates.base_url.unwrap().iter().all(|item| [
+            "base_url".to_string(),
+            "env".to_string()
+        ]
+        .contains(item)));
+
+        assert!(templates.endpoint.unwrap().iter().all(|item| [
+            "resouce".to_string(),
+            "resourceId".to_string()
+        ]
+        .contains(item)));
+
+        assert!(templates.headers.unwrap().iter().all(|item| [
+            "type".to_string(),
+            "api-key".to_string()
+        ]
+        .contains(item)));
+
+        assert!(templates.data.unwrap().iter().all(|item| [
+            "resourceId".to_string(),
+            "number".to_string()
+        ]
+        .contains(item)));
     }
 }

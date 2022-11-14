@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 pub struct Templates {
     endpoint: Option<Vec<String>>,
@@ -74,7 +74,10 @@ fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError>
 
         match alt_templated[start_index + 1..end_index].find("{") {
             Some(index) => return Err(InputError {
-                details: format!("Parsing error in template: found open bracket at {index}, expecting closing bracket", index = index)
+                details: format!(
+                            "Parsing error in template: found open bracket at {index}, expecting closing bracket", 
+                             index = index
+                        )
             }),
             None => 0
         };
@@ -86,6 +89,16 @@ fn extract_template_names(templated: &String) -> Result<Vec<String>, InputError>
     }
 
     Ok(Vec::from_iter(names))
+}
+
+fn insert_template_values(templated_str: &String, value_map: HashMap<String, String>) -> String {
+    let mut cloned_templated_str = templated_str.clone();
+    for (key, value) in value_map {
+        let replace_key = format!("{{{0}}}", key);
+        cloned_templated_str = cloned_templated_str.replace(&replace_key, &value);
+    } 
+
+    cloned_templated_str
 }
 
 #[cfg(test)]
@@ -111,5 +124,17 @@ mod tests {
             Ok(_) => assert!(false),
             Err(_) => assert!(true),
         };
+    }
+
+    #[test]
+    fn insert_template_values_succeeds() {
+        let test_str = String::from("https://{base_url}/v1/{resource}/{resouceId}");
+        let mut value_map: HashMap<String, String> = HashMap::new();
+        value_map.insert("base_url".to_string(), "something.com".to_string());
+        value_map.insert("resource".to_string(), "user".to_string());
+        value_map.insert("resouceId".to_string(), "uuid".to_string());
+
+        let replaced_str = insert_template_values(&test_str, value_map);
+        assert_eq!(replaced_str, "https://something.com/v1/user/uuid")
     }
 }

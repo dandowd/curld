@@ -4,7 +4,7 @@ use super::settings::global_settings;
 use serde::{de, Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Default)]
 pub struct EndpointSettings {
     #[serde(default)]
     pub headers: Vec<String>,
@@ -17,4 +17,11 @@ pub struct EndpointSettings {
 
     #[serde(default)]
     pub data: String,
+}
+
+pub fn init() {
+    let mut settings = global_settings::get();
+    if !settings.module_exists(&String::from("endpoints")) {
+        settings.set_module::<Vec<EndpointSettings>>(&"endpoints".to_string(), Vec::new());
+    }
 }

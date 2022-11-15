@@ -5,13 +5,13 @@ use std::collections::HashMap;
 
 use super::file;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct GlobalSettings {
     #[serde(default = "get_config_dir")]
     pub working_dir: String,
 
     #[serde(default)]
-    pub module_settings: HashMap<String, Value>,
+    module_settings: HashMap<String, Value>,
 }
 
 impl GlobalSettings {
@@ -20,9 +20,8 @@ impl GlobalSettings {
     /// # Panics
     /// If module has not created default settings, or if the module settings cannot be parsed
     /// Panics if .
-    pub fn get_module<T: de::DeserializeOwned>(module_name: &String) -> T {
-        let global_settings = get();
-        let module_settings = match global_settings.module_settings.get(module_name) {
+    pub fn get_module<T: de::DeserializeOwned>(&self, module_name: &String) -> T {
+        let module_settings = match self.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
             None => panic!(
                 "Module {module_name} has not initialized it's settings",
@@ -38,18 +37,35 @@ impl GlobalSettings {
         module_settings
     }
 
-    pub fn set_module<T: ser::Serialize>(module_name: &String, settings: T) {
-        let mut global_settings = get();
+    pub fn set_module<T: ser::Serialize>(&mut self, module_name: &String, settings: T) {
         let converted_settings = json!(settings);
-        global_settings
-            .module_settings
+        self.module_settings
             .insert(module_name.to_string(), converted_settings);
 
-        let content_str = to_string_pretty(&global_settings).expect(&format!(
+        let content_str = to_string_pretty(self).expect(&format!(
             "Unable to parse settings for module {}",
             module_name
         ));
         file::overwrite_file(&get_global_loc(), &content_str)
+    }
+
+    pub fn set(&self) {
+        let settings_str =
+            to_string_pretty(self).expect(&"Unable to parse global settings for module {}");
+        file::overwrite_file(&get_global_loc(), &settings_str)
+    }
+
+    pub fn module_exists(&self, module_name: &String) -> bool {
+        self.module_settings.contains_key(module_name)
+    }
+}
+
+pub fn init() {
+    if !file::file_exists(&get_global_loc()) {
+        let default_settings = GlobalSettings {
+            ..Default::default()
+        };
+        default_settings.set();
     }
 }
 
@@ -70,7 +86,7 @@ pub fn get() -> GlobalSettings {
 
 fn get_global_loc() -> String {
     let global_settings_dir = get_config_dir();
-    format!("{dir}/curld-settings.json", dir = global_settings_dir)
+    format!("{dir}/curlme/settings.json", dir = global_settings_dir)
 }
 
 /// Gets config dir and converts path_buf to string

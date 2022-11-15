@@ -1,6 +1,7 @@
-mod settings;
 mod endpoints;
+mod settings;
 
 fn main() {
-    println!("Hello, world!");
+    settings::global_settings::init();
+    endpoints::endpoint_settings::init();
 }

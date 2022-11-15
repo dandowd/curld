@@ -1,4 +1,4 @@
-mod commands;
-mod endpoint_settings;
+pub mod commands;
+pub mod endpoint_settings;
 
 use super::settings;

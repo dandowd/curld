@@ -1,6 +1,11 @@
-mod settings;
 mod endpoints;
+mod settings;
+
+use endpoints::endpoint_settings;
+use settings::global_settings;
 
 fn main() {
-    println!("Hello, world!");
+    let mut global_settings = global_settings::init();
+    endpoint_settings::init(&mut global_settings);
+    global_settings.write();
 }

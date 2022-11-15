@@ -29,6 +29,10 @@ pub fn get_file_str(file_loc: &String) -> String {
     content
 }
 
+pub fn file_exists(file_loc: &String) -> bool {
+    std::path::Path::new(file_loc).exists()
+}
+
 /// Retrieves a readable and writable file. It will create the file if it does not exist
 ///
 /// # Panics

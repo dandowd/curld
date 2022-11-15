@@ -37,19 +37,13 @@ impl GlobalSettings {
         module_settings
     }
 
-    pub fn set_module<T: ser::Serialize>(&mut self, module_name: &String, settings: T) {
+    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &String, settings: T) {
         let converted_settings = json!(settings);
         self.module_settings
             .insert(module_name.to_string(), converted_settings);
-
-        let content_str = to_string_pretty(self).expect(&format!(
-            "Unable to parse settings for module {}",
-            module_name
-        ));
-        file::overwrite_file(&get_global_loc(), &content_str)
     }
 
-    pub fn set(&self) {
+    pub fn write(&self) {
         let settings_str =
             to_string_pretty(self).expect(&"Unable to parse global settings for module {}");
         file::overwrite_file(&get_global_loc(), &settings_str)
@@ -60,12 +54,16 @@ impl GlobalSettings {
     }
 }
 
-pub fn init() {
+pub fn init() -> GlobalSettings {
     if !file::file_exists(&get_global_loc()) {
         let default_settings = GlobalSettings {
             ..Default::default()
         };
-        default_settings.set();
+        default_settings.write();
+
+        default_settings
+    } else {
+        get()
     }
 }
 

@@ -1,7 +1,11 @@
 mod endpoints;
 mod settings;
 
+use endpoints::endpoint_settings;
+use settings::global_settings;
+
 fn main() {
-    settings::global_settings::init();
-    endpoints::endpoint_settings::init();
+    let mut global_settings = global_settings::init();
+    endpoint_settings::init(&mut global_settings);
+    global_settings.write();
 }

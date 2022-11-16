@@ -1,8 +1,14 @@
-use crate::settings::global_settings::GlobalSettings;
 use serde::{Deserialize, Serialize};
+use std::default::Default;
 
 #[derive(Deserialize, Serialize, Default)]
 pub struct EndpointSettings {
+    #[serde(default)]
+    history: Vec<EndpointHistory>,
+}
+
+#[derive(Deserialize, Serialize, Default)]
+pub struct EndpointHistory {
     #[serde(default)]
     pub headers: Vec<String>,
 
@@ -16,8 +22,8 @@ pub struct EndpointSettings {
     pub data: String,
 }
 
-pub fn init(global_settings: &mut GlobalSettings) {
-    if !global_settings.module_exists(&String::from("endpoints")) {
-        global_settings.insert_module::<Vec<EndpointSettings>>(&"endpoints".to_string(), Vec::new());
-    }
+pub fn default() {
+    let default_endpoint_settings = EndpointSettings {
+        ..Default::default()
+    };
 }

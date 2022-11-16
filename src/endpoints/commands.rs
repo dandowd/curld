@@ -26,7 +26,7 @@ pub fn get_template_keys(
     }
 }
 
-pub fn construct_curl_endpoint(
+pub fn construct_curl_cmd(
     endpoint: &String,
     method: &String,
     data: &Option<String>,

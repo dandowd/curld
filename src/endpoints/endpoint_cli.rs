@@ -1,4 +1,4 @@
-use crate::endpoints::commands::{get_template_keys, construct_curl_cmd};
+use crate::endpoints::commands::{construct_curl_cmd};
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Endpoints {
@@ -29,7 +29,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             data,
             headers,
         } => {
-            let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
+            let curl_cmd = construct_curl_endpoint(endpoint, method, data, base_url, headers);
             println!("{}", curl_cmd);
         }
     }

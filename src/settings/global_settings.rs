@@ -52,13 +52,23 @@ impl GlobalSettings {
     pub fn module_exists(&self, module_name: &String) -> bool {
         self.module_settings.contains_key(module_name)
     }
+
+    pub fn init_module<T: ser::Serialize>(&mut self, module_name: &String, default_settings: T) {
+        if !self.module_exists(module_name) {
+            self.insert_module(module_name, default_settings);
+        }
+    }
 }
 
 pub fn init() -> GlobalSettings {
-    if !file::file_exists(&get_global_loc()) {
+    let file_loc = get_global_loc();
+    if !file::file_exists(&file_loc) {
+        println!("creating");
         let default_settings = GlobalSettings {
             ..Default::default()
         };
+
+        file::create_parent_dirs(&file_loc);
         default_settings.write();
 
         default_settings
@@ -84,7 +94,7 @@ pub fn get() -> GlobalSettings {
 
 fn get_global_loc() -> String {
     let global_settings_dir = get_config_dir();
-    format!("{dir}/curlme/settings.json", dir = global_settings_dir)
+    format!("{dir}/curld/settings.json", dir = global_settings_dir)
 }
 
 /// Gets config dir and converts path_buf to string

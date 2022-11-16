@@ -33,6 +33,12 @@ pub fn file_exists(file_loc: &String) -> bool {
     std::path::Path::new(file_loc).exists()
 }
 
+pub fn create_parent_dirs(file_loc: &String) {
+    let path = std::path::Path::new(file_loc);
+    let prefix = path.parent().unwrap();
+    std::fs::create_dir_all(prefix).expect("Unable to create directory for settings");
+}
+
 /// Retrieves a readable and writable file. It will create the file if it does not exist
 ///
 /// # Panics

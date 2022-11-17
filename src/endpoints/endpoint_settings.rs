@@ -35,6 +35,10 @@ impl EndpointSettings {
     pub fn get_saved(&self, id: &String) -> Option<&SavedEndpoint> {
         self.saved.get(id)
     }
+
+    pub fn get_saved_keys(&self) -> Vec<String> {
+        self.saved.iter().map(|(key, _saved_endpoint)| key.to_string()).collect() 
+    }
 }
 
 pub fn default() -> EndpointSettings {

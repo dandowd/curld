@@ -64,10 +64,18 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let global_settings = crate::global_settings::get();
             let settings: EndpointSettings =
                 global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
-            let SavedEndpoint { endpoint, method, data, base_url, headers } = settings.get_saved(id).expect("Unable to find saved endpoint");
+            let SavedEndpoint {
+                endpoint,
+                method,
+                data,
+                base_url,
+                headers,
+            } = settings
+                .get_saved(id)
+                .expect("Unable to find saved endpoint");
 
             let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
-            
+
             println!("{}", curl_cmd);
         }
     }

@@ -42,7 +42,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
         } => {
             let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
             if let Some(id_str) = id {
-                let global_settings = crate::global_settings::get();
+                let mut global_settings = crate::global_settings::get();
                 let mut settings: EndpointSettings =
                     global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
 
@@ -55,6 +55,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 };
 
                 settings.add_saved(String::from(id_str), saved_command);
+                global_settings.insert_module(super::endpoint_settings::ENDPOINT_MODULE, settings);
                 global_settings.write();
             }
             println!("{}", curl_cmd);

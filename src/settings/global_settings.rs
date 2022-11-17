@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use super::file;
 
-#[derive(Serialize, Deserialize, Default)]
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct GlobalSettings {
     #[serde(default = "get_config_dir")]
     pub working_dir: String,
@@ -63,7 +63,6 @@ impl GlobalSettings {
 pub fn init() -> GlobalSettings {
     let file_loc = get_global_loc();
     if !file::file_exists(&file_loc) {
-        println!("creating");
         let default_settings = GlobalSettings {
             ..Default::default()
         };

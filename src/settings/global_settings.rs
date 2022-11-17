@@ -20,7 +20,7 @@ impl GlobalSettings {
     /// # Panics
     /// If module has not created default settings, or if the module settings cannot be parsed
     /// Panics if .
-    pub fn get_module<T: de::DeserializeOwned>(&self, module_name: &String) -> T {
+    pub fn get_module<T: de::DeserializeOwned>(&self, module_name: &str) -> T {
         let module_settings = match self.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
             None => panic!(
@@ -37,7 +37,7 @@ impl GlobalSettings {
         module_settings
     }
 
-    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &String, settings: T) {
+    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &str, settings: T) {
         let converted_settings = json!(settings);
         self.module_settings
             .insert(module_name.to_string(), converted_settings);
@@ -53,8 +53,8 @@ impl GlobalSettings {
         self.module_settings.contains_key(module_name)
     }
 
-    pub fn init_module<T: ser::Serialize>(&mut self, module_name: &String, default_settings: T) {
-        if !self.module_exists(module_name) {
+    pub fn init_module<T: ser::Serialize>(&mut self, module_name: &str, default_settings: T) {
+        if !self.module_exists(&module_name.to_string()) {
             self.insert_module(module_name, default_settings);
         }
     }

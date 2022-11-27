@@ -55,8 +55,8 @@ pub fn construct_curl_cmd(
 
     let data_str = match data {
         Some(data) => format!(" --data '{}'", data.to_string()),
-        None => "".to_string()
-    }; 
+        None => "".to_string(),
+    };
 
     format!(
         "--request {method}{headers}{data}{url}",
@@ -105,7 +105,10 @@ pub fn extract_template_names(templated: &String) -> Result<Vec<String>, String>
     Ok(Vec::from_iter(names))
 }
 
-pub fn insert_template_values(templated_str: &String, value_map: HashMap<String, String>) -> String {
+pub fn insert_template_values(
+    templated_str: &String,
+    value_map: HashMap<String, String>,
+) -> String {
     let mut cloned_templated_str = templated_str.clone();
     for (key, value) in value_map {
         let replace_key = format!("${{{0}}}", key);

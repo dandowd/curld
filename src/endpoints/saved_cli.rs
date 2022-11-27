@@ -1,0 +1,29 @@
+use crate::endpoints::{
+    endpoint_settings::{ SavedEndpoint, EndpointSettings },
+    utils::construct_curl_cmd
+};
+
+#[derive(clap::Args, Debug)]
+pub struct SavedInput {
+    #[arg(short, long)]
+    id: String,
+}
+
+pub fn saved(input: &SavedInput) -> String {
+    let SavedInput { id } = input;
+    let global_settings = crate::global_settings::get();
+    let settings: EndpointSettings =
+        global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
+    let SavedEndpoint {
+        endpoint,
+        method,
+        data,
+        base_url,
+        headers,
+    } = settings
+        .get_saved(id)
+        .expect("Unable to find saved endpoint");
+
+    let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
+    curl_cmd
+}

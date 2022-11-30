@@ -32,13 +32,7 @@ pub fn run(
 
     let output = Command::new("curl").args(curl_args).output();
     match output {
-        Ok(cmd_out) => {
-            if cmd_out.stderr.len() > 0 {
-                return String::from_utf8(cmd_out.stderr).unwrap();
-            } else {
-                return String::from_utf8(cmd_out.stdout).unwrap();
-            }
-        },
+        Ok(cmd_out) => String::from_utf8(cmd_out.stdout).unwrap(),
         Err(msg) => panic!("{:?}", msg),
     }
 }

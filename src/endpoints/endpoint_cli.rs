@@ -126,10 +126,21 @@ fn prompt_for_templates(template_keys: Templates) -> HashMap<String, String> {
         headers,
     } = template_keys;
     let mut template_map: HashMap<String, String> = HashMap::new();
+    println!("Endpoint Templates");
     loop_prompt(endpoint, &mut template_map);
+    println!("");
+
+    println!("Data Templates");
     loop_prompt(data, &mut template_map);
+    println!("");
+
+    println!("Base URL Templates");
     loop_prompt(base_url, &mut template_map);
+    println!("");
+
+    println!("Header Templates");
     loop_prompt(headers, &mut template_map);
+    println!("");
 
     template_map
 }
@@ -139,16 +150,18 @@ fn loop_prompt(template: Vec<String>, map: &mut HashMap<String, String>) {
         if map.contains_key(&key) {
             continue;
         }
-        let mut value = String::new();
-        prompt_for_key(&key, &mut value);
+        let value = prompt_for_key(&key);
         map.insert(key, value);
     }
 }
 
-fn prompt_for_key(key: &String, output: &mut String) {
+fn prompt_for_key(key: &String) -> String {
     use std::io::{stdin, stdout, Write};
     print!("Enter value for {}: ", key);
     let _ = stdout().flush();
 
-    stdin().read_line(output).expect("No input");
+    let mut output = String::new();
+    stdin().read_line(&mut output).expect("No input");
+    //read_line will include the new line char, so output needs to be trimmed
+    output.trim().to_string()
 }

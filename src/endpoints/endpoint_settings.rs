@@ -18,13 +18,13 @@ pub struct SavedEndpoint {
     pub method: String,
 
     #[serde(default)]
-    pub headers: Option<Vec<String>>,
+    pub headers: Vec<String>,
 
     #[serde(default)]
-    pub base_url: Option<String>,
+    pub base_url: String,
 
     #[serde(default)]
-    pub data: Option<String>,
+    pub data: String,
 }
 
 impl EndpointSettings {

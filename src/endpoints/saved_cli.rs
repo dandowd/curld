@@ -1,6 +1,6 @@
 use crate::endpoints::{
-    endpoint_settings::{ SavedEndpoint, EndpointSettings },
-    utils::construct_curl_cmd
+    endpoint_settings::{EndpointSettings, SavedEndpoint},
+    utils::construct_curl_cmd,
 };
 
 #[derive(clap::Args, Debug)]
@@ -24,6 +24,12 @@ pub fn saved(input: &SavedInput) -> String {
         .get_saved(id)
         .expect("Unable to find saved endpoint");
 
-    let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
+    let curl_cmd = construct_curl_cmd(
+        endpoint,
+        method,
+        &data,
+        &base_url,
+        &headers,
+    );
     curl_cmd
 }

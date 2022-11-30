@@ -1,61 +1,30 @@
 use std::collections::{HashMap, HashSet};
 
-pub struct Templates {
-    pub endpoint: Option<Vec<String>>,
-    pub data: Option<Vec<String>>,
-    pub base_url: Option<Vec<String>>,
-    pub headers: Option<Vec<String>>,
-}
-
-pub fn get_template_keys(
-    endpoint: &String,
-    data: &String,
-    base_url: &String,
-    headers: &String,
-) -> Templates {
-    let endpoint_templates = extract_template_names(endpoint).ok();
-    let data_templates = extract_template_names(data).ok();
-    let base_url_templates = extract_template_names(base_url).ok();
-    let header_templates = extract_template_names(headers).ok();
-
-    Templates {
-        endpoint: endpoint_templates,
-        data: data_templates,
-        base_url: base_url_templates,
-        headers: header_templates,
-    }
-}
-
 pub fn construct_curl_cmd(
     endpoint: &String,
     method: &String,
-    data: &Option<String>,
-    base_url: &Option<String>,
-    headers: &Option<Vec<String>>,
+    data: &String,
+    base_url: &String,
+    headers: &Vec<String>,
 ) -> String {
-    let url = match base_url {
-        Some(base_url) => format!(
-            " {base_url}{endpoint}",
-            base_url = base_url,
-            endpoint = endpoint
-        ),
-        None => format!(" {}", endpoint.to_string()),
-    };
+    let url = format!(
+        " {base_url}{endpoint}",
+        base_url = base_url,
+        endpoint = endpoint
+    );
 
-    let header_str = match headers {
-        Some(headers) => {
-            let mut header_str = String::new();
-            for header in headers {
-                header_str.push_str(&format!(" --header '{}'", header))
-            }
-            header_str
+    let header_str = {
+        let mut header_str = String::new();
+        for header in headers {
+            header_str.push_str(&format!(" --header '{}'", header))
         }
-        None => "".to_string(),
+        header_str
     };
 
-    let data_str = match data {
-        Some(data) => format!(" --data '{}'", data.to_string()),
-        None => "".to_string(),
+    let data_str = if data != "" {
+        format!(" --data '{}'", data.to_string())
+    } else {
+        "".to_string()
     };
 
     format!(
@@ -105,9 +74,22 @@ pub fn extract_template_names(templated: &String) -> Result<Vec<String>, String>
     Ok(Vec::from_iter(names))
 }
 
+pub fn insert_template_values_vec(
+    vec_str: &Vec<String>,
+    value_map: &HashMap<String, String>,
+) -> Vec<String> {
+    let mut values: Vec<String> = Vec::new();
+    for str in vec_str {
+        let templated = insert_template_values(&str, value_map);
+        values.push(templated);
+    }
+
+    values
+}
+
 pub fn insert_template_values(
     templated_str: &String,
-    value_map: HashMap<String, String>,
+    value_map: &HashMap<String, String>,
 ) -> String {
     let mut cloned_templated_str = templated_str.clone();
     for (key, value) in value_map {

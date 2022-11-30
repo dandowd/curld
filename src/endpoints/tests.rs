@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::endpoints::utils::{extract_template_names, get_template_keys};
-
-use super::utils::insert_template_values;
+use crate::endpoints::utils::{extract_template_names, insert_template_values};
 
 #[test]
 fn extract_template_names_should_parse() {
@@ -33,39 +31,6 @@ fn insert_template_values_succeeds() {
     value_map.insert("resource".to_string(), "user".to_string());
     value_map.insert("resouceId".to_string(), "uuid".to_string());
 
-    let replaced_str = insert_template_values(&test_str, value_map);
+    let replaced_str = insert_template_values(&test_str, &value_map);
     assert_eq!(replaced_str, "https://something.com/v1/user/uuid")
-}
-
-#[test]
-fn get_template_keys_returns_templates() {
-    let base_url = String::from("https://${base_url}/${env}/v1");
-    let endpoint = String::from("/${resouce}/${resourceId}");
-    let headers = String::from("--header 'content-type: ${type} --header x-api-key: ${api-key}'");
-    let data = String::from("{ \"resourceId\": \"${resourceId}\", \"number\": ${number} }");
-
-    let templates = get_template_keys(&endpoint, &data, &base_url, &headers);
-    assert!(templates.base_url.unwrap().iter().all(|item| [
-        "base_url".to_string(),
-        "env".to_string()
-    ]
-    .contains(item)));
-
-    assert!(templates.endpoint.unwrap().iter().all(|item| [
-        "resouce".to_string(),
-        "resourceId".to_string()
-    ]
-    .contains(item)));
-
-    assert!(templates.headers.unwrap().iter().all(|item| [
-        "type".to_string(),
-        "api-key".to_string()
-    ]
-    .contains(item)));
-
-    assert!(templates.data.unwrap().iter().all(|item| [
-        "resourceId".to_string(),
-        "number".to_string()
-    ]
-    .contains(item)));
 }

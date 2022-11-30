@@ -18,6 +18,6 @@ pub fn run() {
     let input = Args::parse();
 
     match &input.command {
-        Commands::Endpoints(variants) => endpoints_match(variants),
+        Commands::Endpoints(variants) => endpoints_match(variants.clone())
     }
 }

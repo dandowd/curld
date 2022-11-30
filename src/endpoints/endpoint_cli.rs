@@ -2,18 +2,15 @@ use std::collections::HashMap;
 
 use crate::endpoints::{
     endpoint_settings::EndpointSettings,
-    run_cli::run,
-    saved_cli::{saved, SavedInput},
+    saved::{saved, SavedInput},
+    run::run,
     utils::{extract_template_names, insert_template_values, insert_template_values_vec},
 };
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
-    #[arg(short)]
-    pub endpoint: String,
-
     #[arg(short = 'X', long)]
-    pub method: String,
+    pub method: Option<String>,
 
     #[arg(short, long)]
     pub base_url: Option<String>,
@@ -26,6 +23,8 @@ pub struct RunInput {
 
     #[arg(short, long)]
     pub id: Option<String>,
+
+    pub endpoint: String,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -50,6 +49,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let header_str = headers.clone().unwrap_or(Vec::new());
             let base_url_str = base_url.clone().unwrap_or("".to_string());
             let data_str = data.clone().unwrap_or("".to_string());
+            let method_str = method.clone().unwrap_or("GET".to_string());
 
             let template_keys = get_template_keys(&endpoint, &data_str, &base_url_str, &header_str);
             let user_templates = prompt_for_templates(template_keys);
@@ -61,7 +61,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
 
             let curl_cmd = run(
                 &endpoint,
-                &method,
+                &method_str,
                 &data_str,
                 &base_url_str,
                 &header_str,
@@ -126,10 +126,21 @@ fn prompt_for_templates(template_keys: Templates) -> HashMap<String, String> {
         headers,
     } = template_keys;
     let mut template_map: HashMap<String, String> = HashMap::new();
+    println!("Endpoint Templates");
     loop_prompt(endpoint, &mut template_map);
+    println!("");
+
+    println!("Data Templates");
     loop_prompt(data, &mut template_map);
+    println!("");
+
+    println!("Base URL Templates");
     loop_prompt(base_url, &mut template_map);
+    println!("");
+
+    println!("Header Templates");
     loop_prompt(headers, &mut template_map);
+    println!("");
 
     template_map
 }
@@ -139,16 +150,18 @@ fn loop_prompt(template: Vec<String>, map: &mut HashMap<String, String>) {
         if map.contains_key(&key) {
             continue;
         }
-        let mut value = String::new();
-        prompt_for_key(&key, &mut value);
+        let value = prompt_for_key(&key);
         map.insert(key, value);
     }
 }
 
-fn prompt_for_key(key: &String, output: &mut String) {
+fn prompt_for_key(key: &String) -> String {
     use std::io::{stdin, stdout, Write};
     print!("Enter value for {}: ", key);
     let _ = stdout().flush();
 
-    stdin().read_line(output).expect("No input");
+    let mut output = String::new();
+    stdin().read_line(&mut output).expect("No input");
+    //read_line will include the new line char, so output needs to be trimmed
+    output.trim().to_string()
 }

@@ -21,7 +21,11 @@ pub fn construct_curl_cmd(
         header_str
     };
 
-    let data_str = format!(" --data '{}'", data.to_string()); 
+    let data_str = if data != "" {
+        format!(" --data '{}'", data.to_string())
+    } else {
+        "".to_string()
+    };
 
     format!(
         "--request {method}{headers}{data}{url}",

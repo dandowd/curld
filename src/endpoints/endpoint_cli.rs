@@ -52,7 +52,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let data_str = data.clone().unwrap_or("".to_string());
 
             let template_keys = get_template_keys(&endpoint, &data_str, &base_url_str, &header_str);
-            let user_templates = prompt_for_templates(template_keys); 
+            let user_templates = prompt_for_templates(template_keys);
 
             let endpoint = insert_template_values(&endpoint, &user_templates);
             let data_str = insert_template_values(&data_str, &user_templates);

@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::endpoints::utils::extract_template_names;
-
-use super::utils::insert_template_values;
+use crate::endpoints::utils::{extract_template_names, insert_template_values};
 
 #[test]
 fn extract_template_names_should_parse() {

@@ -1,7 +1,7 @@
-use crate::endpoints::{
-    endpoint_settings::{EndpointSettings, SavedEndpoint},
-    utils::construct_curl_cmd,
-};
+use crate::endpoints::endpoint_settings::{EndpointSettings, SavedEndpoint};
+use std::process::Command;
+
+use super::utils::construct_curl_args;
 
 pub fn run(
     endpoint: &String,
@@ -11,7 +11,7 @@ pub fn run(
     headers: &Vec<String>,
     id: &Option<String>,
 ) -> String {
-    let curl_cmd = construct_curl_cmd(endpoint, method, data, base_url, headers);
+    let curl_args = construct_curl_args(endpoint, method, data, base_url, headers);
     if let Some(id_str) = id {
         let mut global_settings = crate::global_settings::get();
         let mut settings: EndpointSettings =
@@ -30,5 +30,15 @@ pub fn run(
         global_settings.write();
     }
 
-    curl_cmd
+    let output = Command::new("curl").args(curl_args).output();
+    match output {
+        Ok(cmd_out) => {
+            if cmd_out.stderr.len() > 0 {
+                return String::from_utf8(cmd_out.stderr).unwrap();
+            } else {
+                return String::from_utf8(cmd_out.stdout).unwrap();
+            }
+        },
+        Err(msg) => panic!("{:?}", msg),
+    }
 }

@@ -2,18 +2,15 @@ use std::collections::HashMap;
 
 use crate::endpoints::{
     endpoint_settings::EndpointSettings,
-    run_cli::run,
-    saved_cli::{saved, SavedInput},
+    saved::{saved, SavedInput},
+    run::run,
     utils::{extract_template_names, insert_template_values, insert_template_values_vec},
 };
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
-    #[arg(short)]
-    pub endpoint: String,
-
     #[arg(short = 'X', long)]
-    pub method: String,
+    pub method: Option<String>,
 
     #[arg(short, long)]
     pub base_url: Option<String>,
@@ -26,6 +23,8 @@ pub struct RunInput {
 
     #[arg(short, long)]
     pub id: Option<String>,
+
+    pub endpoint: String,
 }
 
 #[derive(clap::Subcommand, Debug)]
@@ -50,6 +49,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let header_str = headers.clone().unwrap_or(Vec::new());
             let base_url_str = base_url.clone().unwrap_or("".to_string());
             let data_str = data.clone().unwrap_or("".to_string());
+            let method_str = method.clone().unwrap_or("GET".to_string());
 
             let template_keys = get_template_keys(&endpoint, &data_str, &base_url_str, &header_str);
             let user_templates = prompt_for_templates(template_keys);
@@ -61,7 +61,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
 
             let curl_cmd = run(
                 &endpoint,
-                &method,
+                &method_str,
                 &data_str,
                 &base_url_str,
                 &header_str,

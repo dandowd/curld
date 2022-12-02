@@ -9,17 +9,17 @@ use crate::endpoints::{
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
-    #[arg(short = 'X', long)]
-    pub method: Option<String>,
+    #[arg(short = 'X', long, default_value = "GET", required = false)]
+    pub method: String,
 
-    #[arg(short, long)]
-    pub base_url: Option<String>,
+    #[arg(short, long, default_value = "", required = false)]
+    pub base_url: String,
 
-    #[arg(short, long)]
-    pub data: Option<String>,
+    #[arg(short, long, default_value = "", required = false)]
+    pub data: String,
 
-    #[arg(short = 'H', long)]
-    pub headers: Option<Vec<String>>,
+    #[arg(short = 'H', long, required = false)]
+    pub headers: Vec<String>,
 
     #[arg(short, long)]
     pub id: Option<String>,
@@ -46,22 +46,17 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 method,
                 id,
             } = input;
-            let header_str = headers.clone().unwrap_or(Vec::new());
-            let base_url_str = base_url.clone().unwrap_or("".to_string());
-            let data_str = data.clone().unwrap_or("".to_string());
-            let method_str = method.clone().unwrap_or("GET".to_string());
-
-            let template_keys = get_template_keys(&endpoint, &data_str, &base_url_str, &header_str);
+            let template_keys = get_template_keys(&endpoint, &data, base_url, &headers);
             let user_templates = prompt_for_templates(template_keys);
 
             let endpoint = insert_template_values(&endpoint, &user_templates);
-            let data_str = insert_template_values(&data_str, &user_templates);
-            let base_url_str = insert_template_values(&base_url_str, &user_templates);
-            let header_str = insert_template_values_vec(&header_str, &user_templates);
+            let data_str = insert_template_values(&data, &user_templates);
+            let base_url_str = insert_template_values(&base_url, &user_templates);
+            let header_str = insert_template_values_vec(&headers, &user_templates);
 
             let curl_cmd = run(
                 &endpoint,
-                &method_str,
+                &method,
                 &data_str,
                 &base_url_str,
                 &header_str,

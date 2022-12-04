@@ -72,7 +72,7 @@ pub fn init() -> GlobalSettings {
 
         default_settings
     } else {
-        get()
+        get_global_settings()
     }
 }
 
@@ -81,7 +81,7 @@ pub fn init() -> GlobalSettings {
 /// # Panics
 /// If global settings cannot be parsed
 /// Panics if .
-pub fn get() -> GlobalSettings {
+pub fn get_global_settings() -> GlobalSettings {
     let global_settings_file_loc = get_global_loc();
     let global_settings_str = file::get_file_str(&global_settings_file_loc);
 

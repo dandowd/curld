@@ -1,37 +1,18 @@
 use std::collections::HashMap;
 
 use crate::endpoints::{
-    endpoint_settings::EndpointSettings,
+    endpoint_settings::get_endpoint_settings,
+    history::HistoryInput,
+    run::{run, run_with_args, RunInput},
     saved::{saved, SavedInput},
-    run::run,
     utils::{extract_template_names, insert_template_values, insert_template_values_vec},
 };
-
-#[derive(clap::Args, Debug)]
-pub struct RunInput {
-    #[arg(short = 'X', long, default_value = "GET", required = false)]
-    pub method: String,
-
-    #[arg(short, long, default_value = "", required = false)]
-    pub base_url: String,
-
-    #[arg(short, long, default_value = "", required = false)]
-    pub data: String,
-
-    #[arg(short = 'H', long, required = false)]
-    pub headers: Vec<String>,
-
-    #[arg(short, long)]
-    pub id: Option<String>,
-
-    pub endpoint: String,
-}
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Endpoints {
     Run(RunInput),
-
     Saved(SavedInput),
+    History(HistoryInput),
     List,
 }
 
@@ -54,7 +35,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let base_url_str = insert_template_values(&base_url, &user_templates);
             let header_str = insert_template_values_vec(&headers, &user_templates);
 
-            let curl_cmd = run(
+            let curl_output = run(
                 &endpoint,
                 &method,
                 &data_str,
@@ -62,18 +43,39 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 &header_str,
                 &id,
             );
-            println!("{}", curl_cmd);
+
+            println!("{}", curl_output);
         }
         Endpoints::Saved(input) => {
             let curl_cmd = saved(input);
             println!("{}", curl_cmd);
         }
         Endpoints::List => {
-            let global_settings = crate::global_settings::get();
-            let settings: EndpointSettings =
-                global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
+            let (settings, _) = get_endpoint_settings();
             for id in settings.get_saved_keys() {
                 println!("{}", id);
+            }
+        }
+        Endpoints::History(input) => {
+            let (settings, _) = get_endpoint_settings();
+
+            if let Some(index) = input.run {
+                let cmd_args = settings.get_history_entry(index);
+                match cmd_args {
+                    Some(args) => {
+                        let curl_arg_vec: Vec<String> =
+                            args.split(" ").map(|item| item.to_string()).collect();
+                        let output = run_with_args(curl_arg_vec);
+                        println!("{}", output);
+                    }
+                    None => println!("No history at index {}", index),
+                }
+            }
+
+            if input.list {
+                for history in settings.get_history_entries() {
+                    println!("{}", history);
+                }
             }
         }
     }

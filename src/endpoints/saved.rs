@@ -11,7 +11,7 @@ pub struct SavedInput {
 
 pub fn saved(input: &SavedInput) -> String {
     let SavedInput { id } = input;
-    let global_settings = crate::global_settings::get();
+    let global_settings = crate::global_settings::get_global_settings();
     let settings: EndpointSettings =
         global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
     let SavedEndpoint {

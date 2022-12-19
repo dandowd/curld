@@ -10,7 +10,7 @@ pub struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Commands {
-    #[command(subcommand)]
+    #[command(flatten)]
     Endpoints(Endpoints),
 }
 
@@ -18,6 +18,6 @@ pub fn run() {
     let input = Args::parse();
 
     match &input.command {
-        Commands::Endpoints(variants) => endpoints_match(variants.clone())
+        Commands::Endpoints(variants) => endpoints_match(variants.clone()),
     }
 }

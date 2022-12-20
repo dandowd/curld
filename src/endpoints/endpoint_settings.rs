@@ -51,7 +51,7 @@ impl EndpointSettings {
             .collect()
     }
 
-    pub fn save_history(&mut self, cmd: &String) {
+    pub fn insert_history(&mut self, cmd: &String) {
         self.history.push(cmd.clone());
         self.history.truncate(self.history_len);
     }
@@ -67,11 +67,6 @@ impl EndpointSettings {
     pub fn get_history_entry(&self, index: usize) -> Option<&String> {
         self.history.get(index)
     }
-}
-
-pub fn update_global_settings(global_settings: &mut GlobalSettings, settings: &EndpointSettings) {
-    global_settings.insert_module(super::endpoint_settings::ENDPOINT_MODULE, settings);
-    global_settings.write();
 }
 
 pub fn get_endpoint_settings() -> (EndpointSettings, GlobalSettings) {

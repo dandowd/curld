@@ -28,12 +28,12 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 id,
             } = input;
             let template_keys = get_template_keys(&endpoint, &data, base_url, &headers);
-            let user_templates = prompt_for_templates(template_keys);
+            let user_values = prompt_for_templates(template_keys);
 
-            let endpoint = insert_template_values(&endpoint, &user_templates);
-            let data_str = insert_template_values(&data, &user_templates);
-            let base_url_str = insert_template_values(&base_url, &user_templates);
-            let header_str = insert_template_values_vec(&headers, &user_templates);
+            let endpoint = insert_template_values(&endpoint, &user_values);
+            let data_str = insert_template_values(&data, &user_values);
+            let base_url_str = insert_template_values(&base_url, &user_values);
+            let header_str = insert_template_values_vec(&headers, &user_values);
 
             let curl_output = run(
                 &endpoint,

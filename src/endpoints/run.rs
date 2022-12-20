@@ -1,4 +1,4 @@
-use super::{endpoint_settings::{get_endpoint_settings, update_global_settings}, utils::construct_curl_args};
+use super::{endpoint_settings::get_endpoint_settings, utils::construct_curl_args};
 use crate::endpoints::endpoint_settings::SavedEndpoint;
 use std::process::Command;
 
@@ -32,8 +32,8 @@ pub fn run(
 ) -> String {
     let curl_args = construct_curl_args(endpoint, method, data, base_url, headers);
 
-    let (mut endpoint_settings, mut global_settings) = get_endpoint_settings();
-    endpoint_settings.save_history(&curl_args.join(" "));
+    let (mut endpoint_settings, global_settings) = get_endpoint_settings();
+    endpoint_settings.insert_history(&curl_args.join(" "));
     if let Some(id_str) = id {
         let saved_command = SavedEndpoint {
             endpoint: String::from(endpoint),
@@ -46,7 +46,7 @@ pub fn run(
         endpoint_settings.add_saved(String::from(id_str), saved_command);
     }
 
-    update_global_settings(&mut global_settings, &endpoint_settings);
+    global_settings.write();
 
     run_with_args(curl_args)
 }

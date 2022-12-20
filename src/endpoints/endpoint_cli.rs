@@ -27,21 +27,21 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 method,
                 id,
             } = input;
-            let template_keys = get_template_keys(&endpoint, &data, base_url, &headers);
+            let template_keys = get_template_keys(endpoint, data, base_url, headers);
             let user_values = prompt_for_templates(template_keys);
 
-            let endpoint = insert_template_values(&endpoint, &user_values);
-            let data_str = insert_template_values(&data, &user_values);
-            let base_url_str = insert_template_values(&base_url, &user_values);
-            let header_str = insert_template_values_vec(&headers, &user_values);
+            let endpoint = insert_template_values(endpoint, &user_values);
+            let data_str = insert_template_values(data, &user_values);
+            let base_url_str = insert_template_values(base_url, &user_values);
+            let header_str = insert_template_values_vec(headers, &user_values);
 
             let curl_output = run(
                 &endpoint,
-                &method,
+                method,
                 &data_str,
                 &base_url_str,
                 &header_str,
-                &id,
+                id,
             );
 
             println!("{}", curl_output);
@@ -64,7 +64,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 match cmd_args {
                     Some(args) => {
                         let curl_arg_vec: Vec<String> =
-                            args.split(" ").map(|item| item.to_string()).collect();
+                            args.split(' ').map(|item| item.to_string()).collect();
                         let output = run_with_args(curl_arg_vec);
                         println!("{}", output);
                     }
@@ -89,9 +89,9 @@ pub struct Templates {
 }
 
 pub fn get_template_keys(
-    endpoint: &String,
-    data: &String,
-    base_url: &String,
+    endpoint: &str,
+    data: &str,
+    base_url: &str,
     headers: &Vec<String>,
 ) -> Templates {
     let endpoint_templates = extract_template_names(endpoint).unwrap();
@@ -125,19 +125,19 @@ fn prompt_for_templates(template_keys: Templates) -> HashMap<String, String> {
     let mut template_map: HashMap<String, String> = HashMap::new();
     println!("Endpoint Templates");
     loop_prompt(endpoint, &mut template_map);
-    println!("");
+    println!();
 
     println!("Data Templates");
     loop_prompt(data, &mut template_map);
-    println!("");
+    println!();
 
     println!("Base URL Templates");
     loop_prompt(base_url, &mut template_map);
-    println!("");
+    println!();
 
     println!("Header Templates");
     loop_prompt(headers, &mut template_map);
-    println!("");
+    println!();
 
     template_map
 }

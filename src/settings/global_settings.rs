@@ -45,7 +45,7 @@ impl GlobalSettings {
 
     pub fn write(&self) {
         let settings_str =
-            to_string_pretty(self).expect(&"Unable to parse global settings for module {}");
+            to_string_pretty(self).expect("Unable to parse global settings for module {}");
         file::overwrite_file(&get_global_loc(), &settings_str)
     }
 

@@ -24,12 +24,5 @@ pub fn saved(input: &SavedInput) -> String {
         .get_saved(id)
         .expect("Unable to find saved endpoint");
 
-    let curl_cmd = construct_curl_cmd(
-        endpoint,
-        method,
-        &data,
-        &base_url,
-        &headers,
-    );
-    curl_cmd
+    construct_curl_cmd(endpoint, method, data, base_url, headers)
 }

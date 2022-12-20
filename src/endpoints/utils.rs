@@ -21,8 +21,8 @@ pub fn construct_curl_cmd(
         header_str
     };
 
-    let data_str = if data != "" {
-        format!(" --data '{}'", data.to_string())
+    let data_str = if !data.is_empty() {
+        format!(" --data '{}'", data)
     } else {
         "".to_string()
     };
@@ -56,11 +56,11 @@ pub fn construct_curl_args(
         header_str
     };
 
-    if header_str.len() > 0 {
+    if header_str.is_empty() {
         args.push(header_str);
     }
 
-    if data != "" {
+    if !data.is_empty() {
         args.push("-d".to_string());
         args.push( data.to_string());
     };
@@ -76,17 +76,13 @@ pub fn construct_curl_args(
     args
 }
 
-pub fn extract_template_names(templated: &String) -> Result<Vec<String>, String> {
+pub fn extract_template_names(templated: &str) -> Result<Vec<String>, String> {
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
-    let mut alt_templated = templated.clone();
-    loop {
-        let start_index = match alt_templated.find("${") {
-            Some(index) => index,
-            None => break,
-        };
+    let mut alt_templated = templated.to_owned();
 
-        let end_index = match alt_templated.find("}") {
+    while let Some(start_index) = alt_templated.find("${") {
+        let end_index = match alt_templated.find('}') {
             Some(index) => index,
             None => {
                 return Err(
@@ -120,7 +116,7 @@ pub fn insert_template_values_vec(
 ) -> Vec<String> {
     let mut values: Vec<String> = Vec::new();
     for str in vec_str {
-        let templated = insert_template_values(&str, value_map);
+        let templated = insert_template_values(str, value_map);
         values.push(templated);
     }
 
@@ -128,13 +124,13 @@ pub fn insert_template_values_vec(
 }
 
 pub fn insert_template_values(
-    templated_str: &String,
+    templated_str: &str,
     value_map: &HashMap<String, String>,
 ) -> String {
-    let mut cloned_templated_str = templated_str.clone();
+    let mut cloned_templated_str = templated_str.to_owned();
     for (key, value) in value_map {
         let replace_key = format!("${{{0}}}", key);
-        cloned_templated_str = cloned_templated_str.replace(&replace_key, &value);
+        cloned_templated_str = cloned_templated_str.replace(&replace_key, value);
     }
 
     cloned_templated_str

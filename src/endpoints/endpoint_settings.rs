@@ -51,8 +51,8 @@ impl EndpointSettings {
             .collect()
     }
 
-    pub fn insert_history(&mut self, cmd: &String) {
-        self.history.push(cmd.clone());
+    pub fn insert_history(&mut self, cmd: &str) {
+        self.history.push(cmd.to_owned());
         self.history.truncate(self.history_len);
     }
 

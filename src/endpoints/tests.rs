@@ -18,8 +18,8 @@ fn extract_template_names_should_error_on_bad_parse() {
     let test_str = String::from("https://${base_url/v1/${endpoint}");
 
     match extract_template_names(&test_str) {
-        Ok(_) => assert!(false),
-        Err(_) => assert!(true),
+        Ok(_) => panic!("extract template names succeeded when it should fail"),
+        Err(err) => assert!(!err.is_empty()),
     };
 }
 

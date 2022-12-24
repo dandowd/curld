@@ -46,8 +46,8 @@ impl EndpointSettings {
 
     pub fn get_saved_keys(&self) -> Vec<String> {
         self.saved
-            .iter()
-            .map(|(key, _saved_endpoint)| key.to_string())
+            .keys()
+            .map(|k| k.to_string())
             .collect()
     }
 

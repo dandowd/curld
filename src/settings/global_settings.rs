@@ -15,11 +15,6 @@ pub struct GlobalSettings {
 }
 
 impl GlobalSettings {
-    /// Gets module's settings
-    ///
-    /// # Panics
-    /// If module has not created default settings, or if the module settings cannot be parsed
-    /// Panics if .
     pub fn get_module<T: de::DeserializeOwned>(&self, module_name: &str) -> T {
         let module_settings = match self.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
@@ -76,11 +71,6 @@ pub fn init() -> GlobalSettings {
     }
 }
 
-/// Gets global settings
-///
-/// # Panics
-/// If global settings cannot be parsed
-/// Panics if .
 pub fn get_global_settings() -> GlobalSettings {
     let global_settings_file_loc = get_global_loc();
     let global_settings_str = file::get_file_str(&global_settings_file_loc);
@@ -96,11 +86,6 @@ fn get_global_loc() -> String {
     format!("{dir}/curld/settings.json", dir = global_settings_dir)
 }
 
-/// Gets config dir and converts path_buf to string
-///
-/// # Panics
-/// If the OS config directory cannot be found or path_buf cannot be converted to string
-/// Panics if .
 fn get_config_dir() -> String {
     let path_buf = match dirs::config_dir() {
         Some(dir) => dir,

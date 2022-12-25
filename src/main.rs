@@ -1,6 +1,7 @@
 mod endpoints;
 mod settings;
 mod cli;
+mod templates;
 
 use endpoints::endpoint_settings;
 use settings::global_settings;

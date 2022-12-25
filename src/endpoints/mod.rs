@@ -3,6 +3,3 @@ pub mod endpoint_cli;
 mod run;
 mod saved;
 mod utils;
-mod history;
-
-mod tests;

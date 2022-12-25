@@ -4,7 +4,12 @@ use crate::endpoints::{
     endpoint_settings::get_endpoint_settings,
     run::{run, run_with_args},
     saved::{saved, SavedInput},
-    utils::{extract_template_names, insert_template_values, insert_template_values_vec},
+};
+
+use crate::templates::parse::{
+    extract_template_names,
+    insert_template_values,
+    insert_template_values_vec
 };
 
 #[derive(clap::Args, Debug)]

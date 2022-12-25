@@ -5,5 +5,4 @@ mod saved;
 mod utils;
 mod history;
 
-#[cfg(test)]
 mod tests;

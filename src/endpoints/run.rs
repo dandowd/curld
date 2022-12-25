@@ -2,25 +2,6 @@ use super::{endpoint_settings::get_endpoint_settings, utils::construct_curl_args
 use crate::endpoints::endpoint_settings::SavedEndpoint;
 use std::process::Command;
 
-#[derive(clap::Args, Debug)]
-pub struct RunInput {
-    #[arg(short = 'X', long, default_value = "GET", required = false)]
-    pub method: String,
-
-    #[arg(short, long, default_value = "", required = false)]
-    pub base_url: String,
-
-    #[arg(short, long, default_value = "", required = false)]
-    pub data: String,
-
-    #[arg(short = 'H', long, required = false)]
-    pub headers: Vec<String>,
-
-    #[arg(short, long)]
-    pub id: Option<String>,
-
-    pub endpoint: String,
-}
 
 pub fn run(
     endpoint: &String,

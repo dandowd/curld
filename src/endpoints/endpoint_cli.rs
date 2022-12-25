@@ -2,11 +2,39 @@ use std::collections::HashMap;
 
 use crate::endpoints::{
     endpoint_settings::get_endpoint_settings,
-    history::HistoryInput,
-    run::{run, run_with_args, RunInput},
+    run::{run, run_with_args},
     saved::{saved, SavedInput},
     utils::{extract_template_names, insert_template_values, insert_template_values_vec},
 };
+
+#[derive(clap::Args, Debug)]
+pub struct RunInput {
+    #[arg(short = 'X', long, default_value = "GET", required = false)]
+    pub method: String,
+
+    #[arg(short, long, default_value = "", required = false)]
+    pub base_url: String,
+
+    #[arg(short, long, default_value = "", required = false)]
+    pub data: String,
+
+    #[arg(short = 'H', long, required = false)]
+    pub headers: Vec<String>,
+
+    #[arg(short, long)]
+    pub id: Option<String>,
+
+    pub endpoint: String,
+}
+
+#[derive(clap::Args, Debug)]
+pub struct HistoryInput {
+    #[arg(short, long, default_value = "false")]
+    pub list: bool,
+
+    #[arg(short, long)]
+    pub run: Option<usize>,
+}
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Endpoints {
@@ -35,14 +63,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let base_url_str = insert_template_values(base_url, &user_values);
             let header_str = insert_template_values_vec(headers, &user_values);
 
-            let curl_output = run(
-                &endpoint,
-                method,
-                &data_str,
-                &base_url_str,
-                &header_str,
-                id,
-            );
+            let curl_output = run(&endpoint, method, &data_str, &base_url_str, &header_str, id);
 
             println!("{}", curl_output);
         }

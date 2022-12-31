@@ -113,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn module_should_overwrite_module() {
+    fn should_overwrite_module() {
         let test = TestModule {
             name: "test_name".to_string(),
         };
@@ -128,6 +128,8 @@ mod tests {
         saved_test.name = "mutated".to_string();
 
         global_settings.insert_module("a", &saved_test);
-        println!("{:?}", global_settings);
+
+        let module: TestModule = global_settings.get_module("a");
+        assert_eq!(module.name, "mutated");
     }
 }

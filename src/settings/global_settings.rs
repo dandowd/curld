@@ -53,31 +53,31 @@ impl GlobalSettings {
             self.insert_module(module_name, default_settings);
         }
     }
-}
 
-pub fn init() -> GlobalSettings {
-    let file_loc = get_global_loc();
-    if !file::file_exists(&file_loc) {
-        let default_settings = GlobalSettings {
-            ..Default::default()
-        };
+    pub fn get() -> GlobalSettings {
+        let global_settings_file_loc = get_global_loc();
+        let global_settings_str = file::get_file_str(&global_settings_file_loc);
 
-        file::create_parent_dirs(&file_loc);
-        default_settings.write();
-
-        default_settings
-    } else {
-        get_global_settings()
+        match from_str(&global_settings_str) {
+            Ok(global_settings) => global_settings,
+            Err(error) => panic!("Unable to serialize settings due to error: {:?}", error),
+        }
     }
-}
 
-pub fn get_global_settings() -> GlobalSettings {
-    let global_settings_file_loc = get_global_loc();
-    let global_settings_str = file::get_file_str(&global_settings_file_loc);
+    pub fn init() -> GlobalSettings {
+        let file_loc = get_global_loc();
+        if !file::file_exists(&file_loc) {
+            let default_settings = GlobalSettings {
+                ..Default::default()
+            };
 
-    match from_str(&global_settings_str) {
-        Ok(global_settings) => global_settings,
-        Err(error) => panic!("Unable to serialize settings due to error: {:?}", error),
+            file::create_parent_dirs(&file_loc);
+            default_settings.write();
+
+            default_settings
+        } else {
+            GlobalSettings::get()
+        }
     }
 }
 

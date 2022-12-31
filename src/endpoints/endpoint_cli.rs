@@ -7,6 +7,7 @@ use crate::templates::TemplateBuilder;
 use super::endpoint_settings::EndpointSettings;
 
 #[derive(clap::Args, Debug)]
+#[clap(trailing_var_arg = true)]
 pub struct RunInput {
     #[arg(short, long)]
     pub id: Option<String>,
@@ -14,7 +15,8 @@ pub struct RunInput {
     #[arg(short, long)]
     pub endpoint: Option<String>,
 
-    pub cmd: String,
+    #[arg(num_args = 1..)]
+    pub cmd: Vec<String>,
 }
 
 #[derive(clap::Args, Debug)]
@@ -42,7 +44,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 endpoint: _,
                 id,
             } = input;
-            let mut template = TemplateBuilder::new(cmd);
+            let mut template = TemplateBuilder::new(&cmd.join(" "));
             let user_values = prompt_for_templates(&template.keys);
             template.insert_values(&user_values);
 

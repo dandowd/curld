@@ -16,7 +16,6 @@ pub enum Commands {
 
 pub fn run() {
     let input = Args::parse();
-
     match &input.command {
         Commands::Endpoints(variants) => endpoints_match(variants),
     }

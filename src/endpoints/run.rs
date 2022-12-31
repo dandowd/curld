@@ -1,33 +1,7 @@
-use super::{endpoint_settings::get_endpoint_settings, utils::construct_curl_args};
-use crate::endpoints::endpoint_settings::SavedEndpoint;
 use std::process::Command;
 
-
-pub fn run(
-    endpoint: &String,
-    method: &String,
-    data: &String,
-    base_url: &String,
-    headers: &Vec<String>,
-    id: &Option<String>,
-) -> String {
-    let curl_args = construct_curl_args(endpoint, method, data, base_url, headers);
-
-    let (mut endpoint_settings, global_settings) = get_endpoint_settings();
-    endpoint_settings.insert_history(&curl_args.join(" "));
-    if let Some(id_str) = id {
-        let saved_command = SavedEndpoint {
-            endpoint: String::from(endpoint),
-            method: String::from(method),
-            headers: headers.to_owned(),
-            base_url: base_url.to_owned(),
-            data: data.to_owned(),
-        };
-
-        endpoint_settings.add_saved(String::from(id_str), saved_command);
-    }
-
-    global_settings.write();
+pub fn run(curl_cmd: &str) -> String {
+    let curl_args: Vec<String> = curl_cmd.split(' ').map(|input| input.to_string()).collect();
 
     run_with_args(curl_args)
 }

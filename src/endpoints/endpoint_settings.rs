@@ -1,14 +1,20 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::settings::global_settings::GlobalSettings;
+use crate::{settings::global_settings::GlobalSettings, templates::TemplateBuilder};
 
 pub static ENDPOINT_MODULE: &str = "endpoints";
 
-#[derive(Deserialize, Serialize, Default)]
 pub struct EndpointSettings {
+    parent: GlobalSettings,
+
+    settings: SerializedSettings,
+}
+
+#[derive(Deserialize, Serialize, Default)]
+struct SerializedSettings {
     #[serde(default)]
-    saved: HashMap<String, SavedEndpoint>,
+    saved: HashMap<String, TemplateBuilder>,
 
     #[serde(default)]
     history_len: usize,
@@ -17,47 +23,27 @@ pub struct EndpointSettings {
     history: Vec<String>,
 }
 
-#[derive(Deserialize, Serialize, Default)]
-pub struct SavedEndpoint {
-    #[serde(default)]
-    pub endpoint: String,
-
-    #[serde(default)]
-    pub method: String,
-
-    #[serde(default)]
-    pub headers: Vec<String>,
-
-    #[serde(default)]
-    pub base_url: String,
-
-    #[serde(default)]
-    pub data: String,
-}
-
 impl EndpointSettings {
-    pub fn add_saved(&mut self, id: String, history: SavedEndpoint) {
-        self.saved.insert(id, history);
+    pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
+        self.settings.saved.insert(id, history);
     }
 
-    pub fn get_saved(&self, id: &String) -> Option<&SavedEndpoint> {
-        self.saved.get(id)
+    pub fn get_saved(&self, id: &String) -> Option<&TemplateBuilder> {
+        self.settings.saved.get(id)
     }
 
     pub fn get_saved_keys(&self) -> Vec<String> {
-        self.saved
-            .keys()
-            .map(|k| k.to_string())
-            .collect()
+        self.settings.saved.keys().map(|k| k.to_string()).collect()
     }
 
     pub fn insert_history(&mut self, cmd: &str) {
-        self.history.push(cmd.to_owned());
-        self.history.truncate(self.history_len);
+        self.settings.history.push(cmd.to_owned());
+        self.settings.history.truncate(self.settings.history_len);
     }
 
     pub fn get_history_entries(&self) -> Vec<String> {
-        self.history
+        self.settings
+            .history
             .iter()
             .enumerate()
             .map(|(index, value)| format!("{} | {}", index, value))
@@ -65,21 +51,34 @@ impl EndpointSettings {
     }
 
     pub fn get_history_entry(&self, index: usize) -> Option<&String> {
-        self.history.get(index)
+        self.settings.history.get(index)
+    }
+
+    pub fn write(&mut self) {
+        self.parent.insert_module(&ENDPOINT_MODULE, &self.settings);
+        self.parent.write();
+    }
+
+    pub fn get() -> Self {
+        let global_settings = GlobalSettings::get();
+        let settings: SerializedSettings = global_settings.get_module(&ENDPOINT_MODULE);
+
+        Self {
+            parent: global_settings,
+            settings,
+        }
+    }
+
+    pub fn init(global_settings: &mut GlobalSettings) {
+        global_settings.init_module(ENDPOINT_MODULE, &SerializedSettings::default());
     }
 }
 
-pub fn get_endpoint_settings() -> (EndpointSettings, GlobalSettings) {
-    let global_settings = crate::global_settings::get_global_settings();
-    let settings: EndpointSettings =
-        global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
-
-    (settings, global_settings)
-}
-
-pub fn default() -> EndpointSettings {
-    EndpointSettings {
-        history_len: 10,
-        ..Default::default()
+impl SerializedSettings {
+    pub fn default() -> Self {
+        Self {
+            history_len: 10,
+            ..Default::default()
+        }
     }
 }

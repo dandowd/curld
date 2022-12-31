@@ -20,7 +20,7 @@ struct SerializedSettings {
     history_len: usize,
 
     #[serde(default)]
-    history: Vec<String>,
+    history: Vec<TemplateBuilder>,
 }
 
 impl EndpointSettings {
@@ -36,21 +36,16 @@ impl EndpointSettings {
         self.settings.saved.keys().map(|k| k.to_string()).collect()
     }
 
-    pub fn insert_history(&mut self, cmd: &str) {
-        self.settings.history.push(cmd.to_owned());
+    pub fn insert_history(&mut self, cmd: TemplateBuilder) {
+        self.settings.history.push(cmd);
         self.settings.history.truncate(self.settings.history_len);
     }
 
-    pub fn get_history_entries(&self) -> Vec<String> {
-        self.settings
-            .history
-            .iter()
-            .enumerate()
-            .map(|(index, value)| format!("{} | {}", index, value))
-            .collect()
+    pub fn get_history_entries(&self) -> Vec<TemplateBuilder> {
+        self.settings.history.to_owned()
     }
 
-    pub fn get_history_entry(&self, index: usize) -> Option<&String> {
+    pub fn get_history_entry(&self, index: usize) -> Option<&TemplateBuilder> {
         self.settings.history.get(index)
     }
 

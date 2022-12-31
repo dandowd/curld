@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::endpoints::run::{run, run_with_args};
+use crate::endpoints::run::run_with_args;
 
 use crate::templates::TemplateBuilder;
 
@@ -43,21 +43,19 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 endpoint: _,
                 id,
             } = input;
-            let mut template = TemplateBuilder::new(&cmd.join(" "));
+            let mut template = TemplateBuilder::new(cmd.to_owned());
             let user_values = prompt_for_templates(&template.keys);
             template.insert_values(&user_values);
 
-            let curl_cmd = template.cmd();
-            let curl_output = run(&curl_cmd);
+            let curl_output = run_with_args(template.cmd());
 
             let mut endpoint_settings = EndpointSettings::get();
 
-            endpoint_settings.insert_history(&curl_cmd);
-
             if let Some(id) = id {
-                endpoint_settings.add_saved(id.to_owned(), template);
+                endpoint_settings.add_saved(id.to_owned(), template.to_owned());
             }
 
+            endpoint_settings.insert_history(template);
             endpoint_settings.write();
 
             println!("{}", curl_output);
@@ -68,7 +66,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 .get_saved(id)
                 .expect("Could not find saved command");
 
-            let curl_output = run(&template.cmd());
+            let curl_output = run_with_args(template.cmd());
 
             print!("{}", curl_output)
         }
@@ -82,12 +80,10 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let settings = EndpointSettings::get();
 
             if let Some(index) = input.run {
-                let cmd_args = settings.get_history_entry(index);
-                match cmd_args {
+                let cmd = settings.get_history_entry(index);
+                match cmd {
                     Some(args) => {
-                        let curl_arg_vec: Vec<String> =
-                            args.split(' ').map(|item| item.to_string()).collect();
-                        let output = run_with_args(curl_arg_vec);
+                        let output = run_with_args(args.cmd());
                         println!("{}", output);
                     }
                     None => println!("No history at index {}", index),
@@ -96,7 +92,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
 
             if input.list {
                 for history in settings.get_history_entries() {
-                    println!("{}", history);
+                    println!("{:?}", history);
                 }
             }
         }

@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn should_return_cmd_with_inserted_values() {
         let curl_cmd = r#"--request ${method} { 'one': ${one}, 'two': 'no_two', 'three': '${three}' }' https://${base_url}.com/${env}/resource"#;
-        let template = TemplateBuilder::new(curl_cmd);
+        let mut template = TemplateBuilder::new(curl_cmd);
         let value_map = HashMap::from([
             ("method".to_string(), "GET".to_string()),
             ("one".to_string(), "one_value".to_string()),
@@ -68,10 +68,11 @@ mod tests {
             ("base_url".to_string(), "test.com".to_string()),
             ("env".to_string(), "test_env".to_string()),
         ]);
-        let cmd_with_values = template.insert_values(value_map);
+
+        template.insert_values(&value_map);
 
         assert_eq!(
-            cmd_with_values,
+            template.cmd(),
             r#"--request GET { 'one': one_value, 'two': 'no_two', 'three': 'three_value' }' https://test.com.com/test_env/resource"#
         );
     }

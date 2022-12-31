@@ -51,13 +51,15 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let curl_cmd = template.cmd();
             let curl_output = run(&curl_cmd);
 
-            let (mut endpoint_settings, _) = EndpointSettings::get();
+            let (mut endpoint_settings, global_settings) = EndpointSettings::get();
 
             endpoint_settings.insert_history(&curl_cmd);
 
             if let Some(id) = id {
                 endpoint_settings.add_saved(id.to_owned(), template);
             }
+
+            global_settings.write();
 
             println!("{}", curl_output);
         }

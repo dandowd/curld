@@ -25,7 +25,7 @@ impl TemplateBuilder {
 
         Self {
             keys: template_names,
-            original_args: curl_cmd.to_owned(),
+            original_args: curl_cmd,
             value_map: HashMap::new(),
         }
     }
@@ -41,7 +41,7 @@ impl TemplateBuilder {
 
         self.original_args
             .iter()
-            .map(|field| parse::insert_template_values(&field, &self.value_map))
+            .map(|field| parse::insert_template_values(field, &self.value_map))
             .collect()
     }
 

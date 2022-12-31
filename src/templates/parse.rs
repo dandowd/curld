@@ -85,4 +85,15 @@ mod tests {
         let replaced_str = insert_template_values(&test_str, &value_map);
         assert_eq!(replaced_str, "https://something.com/v1/user/uuid");
     }
+
+    #[test]
+    fn insert_template_values_json() {
+        let test_str = r#"{ "one": "${one_value}", "two": ${two_value} }"#;
+        let mut value_map: HashMap<String, String> = HashMap::new();
+        value_map.insert("one_value".to_string(), "first_value".to_string());
+        value_map.insert("two_value".to_string(), "2".to_string());
+
+        let replaced_str = insert_template_values(&test_str, &value_map);
+        assert_eq!(replaced_str, r#"{ "one": "first_value", "two": 2 }"#);
+    }
 }

@@ -10,10 +10,10 @@ pub struct TemplateBuilder {
     pub keys: Vec<String>,
 
     #[serde(default)]
-    pub values: HashMap<String, String>,
+    pub value_map: HashMap<String, String>,
 
     #[serde(default)]
-    pub original: Vec<String>,
+    pub original_args: Vec<String>,
 }
 
 impl TemplateBuilder {
@@ -25,30 +25,60 @@ impl TemplateBuilder {
 
         Self {
             keys: template_names,
-            original: curl_cmd.to_owned(),
-            values: HashMap::new(),
+            original_args: curl_cmd.to_owned(),
+            value_map: HashMap::new(),
         }
     }
 
     pub fn insert_values(&mut self, value_map: &HashMap<String, String>) {
-        self.values = value_map.to_owned();
+        self.value_map = value_map.to_owned();
     }
 
     pub fn cmd(&self) -> Vec<String> {
         if self.keys.is_empty() {
-            return self.original.to_owned();
+            return self.original_args.to_owned();
         }
 
-        self.original
+        self.original_args
             .iter()
-            .map(|field| parse::insert_template_values(&field, &self.values))
+            .map(|field| parse::insert_template_values(&field, &self.value_map))
             .collect()
+    }
+
+    pub fn build_string(&self) -> String {
+        parse::insert_template_values(&self.original_args.join(" "), &self.value_map)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn should_convert_to_string() {
+        let curl_cmd: Vec<String> = [
+            "-X",
+            "POST",
+            "-d",
+            r#"{ "one": "${thing}" }"#,
+            "https://${base_url}",
+        ]
+        .map(String::from)
+        .to_vec();
+
+        let value_map = HashMap::from([
+            ("thing".to_string(), "one_value".to_string()),
+            ("base_url".to_string(), "test.com".to_string()),
+        ]);
+
+        let mut templates = TemplateBuilder::new(curl_cmd);
+        templates.insert_values(&value_map);
+
+        assert_eq!(
+            templates.build_string(),
+            r#"-X POST -d { "one": "one_value" } https://test.com"#
+        )
+    }
 
     #[test]
     fn should_extract_templates_from_cmd() {

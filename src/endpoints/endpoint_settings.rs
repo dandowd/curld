@@ -41,8 +41,19 @@ impl EndpointSettings {
         self.settings.history.truncate(self.settings.history_len);
     }
 
-    pub fn get_history_entries(&self) -> Vec<TemplateBuilder> {
-        self.settings.history.to_owned()
+    pub fn get_history_entries(&self) -> Vec<String> {
+        self.settings
+            .history
+            .iter()
+            .enumerate()
+            .map(|(index, builder)| {
+                format!(
+                    "{index}| {cmd}",
+                    index = index,
+                    cmd = builder.build_string()
+                )
+            })
+            .collect()
     }
 
     pub fn get_history_entry(&self, index: usize) -> Option<&TemplateBuilder> {

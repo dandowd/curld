@@ -5,8 +5,14 @@ use crate::{settings::global_settings::GlobalSettings, templates::TemplateBuilde
 
 pub static ENDPOINT_MODULE: &str = "endpoints";
 
-#[derive(Deserialize, Serialize, Default)]
 pub struct EndpointSettings {
+    parent: GlobalSettings,
+
+    settings: SerializedSettings,
+}
+
+#[derive(Deserialize, Serialize, Default)]
+struct SerializedSettings {
     #[serde(default)]
     saved: HashMap<String, TemplateBuilder>,
 
@@ -19,24 +25,25 @@ pub struct EndpointSettings {
 
 impl EndpointSettings {
     pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
-        self.saved.insert(id, history);
+        self.settings.saved.insert(id, history);
     }
 
     pub fn get_saved(&self, id: &String) -> Option<&TemplateBuilder> {
-        self.saved.get(id)
+        self.settings.saved.get(id)
     }
 
     pub fn get_saved_keys(&self) -> Vec<String> {
-        self.saved.keys().map(|k| k.to_string()).collect()
+        self.settings.saved.keys().map(|k| k.to_string()).collect()
     }
 
     pub fn insert_history(&mut self, cmd: &str) {
-        self.history.push(cmd.to_owned());
-        self.history.truncate(self.history_len);
+        self.settings.history.push(cmd.to_owned());
+        self.settings.history.truncate(self.settings.history_len);
     }
 
     pub fn get_history_entries(&self) -> Vec<String> {
-        self.history
+        self.settings
+            .history
             .iter()
             .enumerate()
             .map(|(index, value)| format!("{} | {}", index, value))
@@ -44,19 +51,32 @@ impl EndpointSettings {
     }
 
     pub fn get_history_entry(&self, index: usize) -> Option<&String> {
-        self.history.get(index)
+        self.settings.history.get(index)
     }
 
-    pub fn get() -> (EndpointSettings, GlobalSettings) {
+    pub fn write(&mut self) {
+        self.parent.insert_module(&ENDPOINT_MODULE, &self.settings);
+        self.parent.write();
+    }
+
+    pub fn get() -> Self {
         let global_settings = GlobalSettings::get();
-        let settings: EndpointSettings =
-            global_settings.get_module(super::endpoint_settings::ENDPOINT_MODULE);
+        let settings: SerializedSettings = global_settings.get_module(&ENDPOINT_MODULE);
 
-        (settings, global_settings)
+        Self {
+            parent: global_settings,
+            settings,
+        }
     }
 
-    pub fn default() -> EndpointSettings {
-        EndpointSettings {
+    pub fn init(global_settings: &mut GlobalSettings) {
+        global_settings.init_module(ENDPOINT_MODULE, &SerializedSettings::default());
+    }
+}
+
+impl SerializedSettings {
+    pub fn default() -> Self {
+        Self {
             history_len: 10,
             ..Default::default()
         }

@@ -51,7 +51,7 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             let curl_cmd = template.cmd();
             let curl_output = run(&curl_cmd);
 
-            let (mut endpoint_settings, global_settings) = EndpointSettings::get();
+            let mut endpoint_settings = EndpointSettings::get();
 
             endpoint_settings.insert_history(&curl_cmd);
 
@@ -59,12 +59,12 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
                 endpoint_settings.add_saved(id.to_owned(), template);
             }
 
-            global_settings.write();
+            endpoint_settings.write();
 
             println!("{}", curl_output);
         }
         Endpoints::RunSaved { id } => {
-            let (settings, _) = EndpointSettings::get();
+            let settings = EndpointSettings::get();
             let template = settings
                 .get_saved(id)
                 .expect("Could not find saved command");
@@ -74,13 +74,13 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
             print!("{}", curl_output)
         }
         Endpoints::List => {
-            let (settings, _) = EndpointSettings::get();
+            let settings = EndpointSettings::get();
             for id in settings.get_saved_keys() {
                 println!("{}", id);
             }
         }
         Endpoints::History(input) => {
-            let (settings, _) = EndpointSettings::get();
+            let settings = EndpointSettings::get();
 
             if let Some(index) = input.run {
                 let cmd_args = settings.get_history_entry(index);

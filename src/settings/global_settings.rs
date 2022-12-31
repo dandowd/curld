@@ -15,11 +15,14 @@ pub struct GlobalSettings {
 }
 
 impl GlobalSettings {
-    pub fn get_module<T: de::DeserializeOwned>(&self, module_name: &str) -> T {
+    pub fn get_module<T>(&self, module_name: &str) -> T
+    where
+        T: de::DeserializeOwned,
+    {
         let module_settings = match self.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
             None => panic!(
-                "Module {module_name} has not initialized it's settings",
+                "No settings found for module {module_name}",
                 module_name = module_name
             ),
         };
@@ -32,10 +35,11 @@ impl GlobalSettings {
         module_settings
     }
 
-    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &str, settings: T) {
+    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &str, settings: &T) -> &Self {
         let converted_settings = json!(settings);
         self.module_settings
             .insert(module_name.to_string(), converted_settings);
+        self
     }
 
     pub fn write(&self) {
@@ -50,7 +54,7 @@ impl GlobalSettings {
 
     pub fn init_module<T: ser::Serialize>(&mut self, module_name: &str, default_settings: T) {
         if !self.module_exists(&module_name.to_string()) {
-            self.insert_module(module_name, default_settings);
+            self.insert_module(module_name, &default_settings);
         }
     }
 
@@ -95,5 +99,35 @@ fn get_config_dir() -> String {
     match path_buf.to_str() {
         Some(dir_str) => dir_str.to_owned(),
         None => panic!("Unable to convert config dir to string"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Serialize, Deserialize, Default, Debug)]
+    struct TestModule {
+        #[serde(default)]
+        pub name: String,
+    }
+
+    #[test]
+    fn module_should_overwrite_module() {
+        let test = TestModule {
+            name: "test_name".to_string(),
+        };
+
+        let mut global_settings = GlobalSettings {
+            working_dir: "".to_string(),
+            module_settings: HashMap::from([("a".to_string(), json!(test))]),
+        };
+
+        let mut saved_test: TestModule = global_settings.get_module("a");
+
+        saved_test.name = "mutated".to_string();
+
+        global_settings.insert_module("a", &saved_test);
+        println!("{:?}", global_settings);
     }
 }

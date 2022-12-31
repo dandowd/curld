@@ -55,13 +55,13 @@ impl EndpointSettings {
     }
 
     pub fn write(&mut self) {
-        self.parent.insert_module(&ENDPOINT_MODULE, &self.settings);
+        self.parent.insert_module(ENDPOINT_MODULE, &self.settings);
         self.parent.write();
     }
 
     pub fn get() -> Self {
         let global_settings = GlobalSettings::get();
-        let settings: SerializedSettings = global_settings.get_module(&ENDPOINT_MODULE);
+        let settings: SerializedSettings = global_settings.get_module(ENDPOINT_MODULE);
 
         Self {
             parent: global_settings,

@@ -7,7 +7,6 @@ use crate::templates::TemplateBuilder;
 use super::endpoint_settings::EndpointSettings;
 
 #[derive(clap::Args, Debug)]
-#[clap(trailing_var_arg = true)]
 pub struct RunInput {
     #[arg(short, long)]
     pub id: Option<String>,
@@ -15,7 +14,7 @@ pub struct RunInput {
     #[arg(short, long)]
     pub endpoint: Option<String>,
 
-    #[arg(num_args = 1..)]
+    #[arg(raw = true)]
     pub cmd: Vec<String>,
 }
 

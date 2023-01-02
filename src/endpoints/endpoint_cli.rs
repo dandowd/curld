@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::endpoints::run::run_with_args;
 
-use crate::templates::TemplateBuilder;
+use super::TemplateBuilder;
 
 use super::endpoint_settings::EndpointSettings;
 

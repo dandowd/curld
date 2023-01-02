@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::{settings::global_settings::GlobalSettings, templates::TemplateBuilder};
+use crate::settings::global_settings::GlobalSettings;
+
+use super::TemplateBuilder;
 
 pub static ENDPOINT_MODULE: &str = "endpoints";
 

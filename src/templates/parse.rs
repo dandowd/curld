@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-pub fn extract_template_names(templated: &str) -> Vec<String> {
+pub(super) fn extract_template_names(templated: &str) -> Vec<String> {
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
     let mut alt_templated = templated.to_owned();

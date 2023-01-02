@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-mod parse;
+use super::parse;
 
 #[derive(Deserialize, Serialize, Clone, Default, Debug)]
 pub struct TemplateBuilder {

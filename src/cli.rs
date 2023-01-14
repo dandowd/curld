@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::endpoints::endpoint_cli::{endpoints_match, Endpoints};
+use crate::run::run_cli::{endpoints_match, Endpoints};
 
 #[derive(Parser, Debug)]
 pub struct Args {

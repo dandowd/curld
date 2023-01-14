@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use crate::endpoints::run::run_with_args;
-
 use super::TemplateBuilder;
 
 use super::endpoint_settings::EndpointSettings;
+use super::run::run_with_args;
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
@@ -120,7 +119,7 @@ fn loop_prompt(keys: &Vec<String>, map: &mut HashMap<String, String>) {
 fn prompt_for_key(key: &str) -> String {
     use std::io::{stdin, stdout, Write};
     print!("Enter value for {}: ", key);
-    let _ = stdout().flush();
+    stdout().flush().expect("unable to flush stdout");
 
     let mut output = String::new();
     stdin().read_line(&mut output).expect("No input");

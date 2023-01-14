@@ -1,9 +1,9 @@
 mod cli;
-mod endpoints;
+mod run;
 mod settings;
 mod templates;
 
-use endpoints::endpoint_settings::EndpointSettings;
+use run::endpoint_settings::EndpointSettings;
 use settings::global_settings::GlobalSettings;
 
 fn main() {

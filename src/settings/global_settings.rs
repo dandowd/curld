@@ -3,10 +3,15 @@ use serde::{de, ser, Deserialize, Serialize};
 use serde_json::{from_str, from_value, json, to_string_pretty, Value};
 use std::collections::HashMap;
 
-use super::file;
+use super::traits::Storage;
+
+pub struct GlobalSettings {
+    storage: Box<dyn Storage>,
+    settings: SerializeSettings,
+}
 
 #[derive(Serialize, Deserialize, Default, Debug)]
-pub struct GlobalSettings {
+struct SerializeSettings {
     #[serde(default = "get_config_dir")]
     pub working_dir: String,
 
@@ -15,11 +20,24 @@ pub struct GlobalSettings {
 }
 
 impl GlobalSettings {
+    pub fn new(storage: Box<dyn Storage>) -> Self {
+        let settings_json = storage.get();
+        let serialized_settings = match from_str(&settings_json) {
+            Ok(global_settings) => global_settings,
+            Err(error) => panic!("Unable to serialize settings due to error: {:?}", error),
+        };
+
+        Self {
+            storage,
+            settings: serialized_settings,
+        }
+    }
+
     pub fn get_module<T>(&self, module_name: &str) -> T
     where
         T: de::DeserializeOwned,
     {
-        let module_settings = match self.module_settings.get(module_name) {
+        let module_settings = match self.settings.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
             None => panic!(
                 "No settings found for module {module_name}",
@@ -37,19 +55,21 @@ impl GlobalSettings {
 
     pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &str, settings: &T) -> &Self {
         let converted_settings = json!(settings);
-        self.module_settings
+        self.settings
+            .module_settings
             .insert(module_name.to_string(), converted_settings);
         self
     }
 
     pub fn write(&self) {
-        let settings_str =
-            to_string_pretty(self).expect("Unable to parse global settings for module {}");
-        file::overwrite_file(&get_global_loc(), &settings_str)
+        let settings_str = to_string_pretty(&self.settings)
+            .expect("Unable to parse global settings for module {}");
+
+        self.storage.write(&settings_str);
     }
 
     pub fn module_exists(&self, module_name: &String) -> bool {
-        self.module_settings.contains_key(module_name)
+        self.settings.module_settings.contains_key(module_name)
     }
 
     pub fn init_module<T: ser::Serialize>(&mut self, module_name: &str, default_settings: T) {
@@ -57,43 +77,12 @@ impl GlobalSettings {
             self.insert_module(module_name, &default_settings);
         }
     }
-
-    pub fn get() -> GlobalSettings {
-        let global_settings_file_loc = get_global_loc();
-        let global_settings_str = file::get_file_str(&global_settings_file_loc);
-
-        match from_str(&global_settings_str) {
-            Ok(global_settings) => global_settings,
-            Err(error) => panic!("Unable to serialize settings due to error: {:?}", error),
-        }
-    }
-
-    pub fn init() -> GlobalSettings {
-        let file_loc = get_global_loc();
-        if !file::file_exists(&file_loc) {
-            let default_settings = GlobalSettings {
-                ..Default::default()
-            };
-
-            file::create_parent_dirs(&file_loc);
-            default_settings.write();
-
-            default_settings
-        } else {
-            GlobalSettings::get()
-        }
-    }
-}
-
-fn get_global_loc() -> String {
-    let global_settings_dir = get_config_dir();
-    format!("{dir}/curld/settings.json", dir = global_settings_dir)
 }
 
 fn get_config_dir() -> String {
     let path_buf = match dirs::config_dir() {
         Some(dir) => dir,
-        None => panic!("Unable to OS config dir"),
+        None => panic!("Unable to get config dir for OS"),
     };
 
     match path_buf.to_str() {
@@ -106,30 +95,60 @@ fn get_config_dir() -> String {
 mod tests {
     use super::*;
 
+    use super::super::traits::MockStorage;
+
     #[derive(Serialize, Deserialize, Default, Debug)]
     struct TestModule {
         #[serde(default)]
         pub name: String,
     }
 
+    const SETTINGS: &str = r##"{
+            "working_dir": "test/dir",
+            "module_settings": {
+                "test_module": {
+                    "name": "test module"
+                }
+            }
+        }"##;
+
     #[test]
-    fn should_overwrite_module() {
-        let test = TestModule {
-            name: "test_name".to_string(),
-        };
+    fn should_try_to_load_settings_from_storage_without_panicing() {
+        let mut mock_storage = Box::new(MockStorage::new());
+        mock_storage
+            .expect_get()
+            .once()
+            .returning(move || String::from(SETTINGS));
+        GlobalSettings::new(mock_storage);
+    }
 
-        let mut global_settings = GlobalSettings {
-            working_dir: "".to_string(),
-            module_settings: HashMap::from([("a".to_string(), json!(test))]),
-        };
+    #[test]
+    fn should_insert_module() {
+        let mut mock_storage = Box::new(MockStorage::new());
+        mock_storage
+            .expect_get()
+            .once()
+            .returning(move || String::from(SETTINGS));
+        let mut global_settings = GlobalSettings::new(mock_storage);
+        let module = to_string_pretty(&TestModule {
+            name: "inserted_module".to_string(),
+        })
+        .expect("error while trying to construct test module");
 
-        let mut saved_test: TestModule = global_settings.get_module("a");
+        global_settings.insert_module("inserted_module", &module);
+    }
 
-        saved_test.name = "mutated".to_string();
+    #[test]
+    fn should_retrieve_test_module() {
+        let mut mock_storage = Box::new(MockStorage::new());
+        mock_storage
+            .expect_get()
+            .once()
+            .returning(move || String::from(SETTINGS));
+        let global_settings = GlobalSettings::new(mock_storage);
 
-        global_settings.insert_module("a", &saved_test);
+        let module: TestModule = global_settings.get_module("test_module");
 
-        let module: TestModule = global_settings.get_module("a");
-        assert_eq!(module.name, "mutated");
+        assert_eq!(module.name, "test module");
     }
 }

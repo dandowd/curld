@@ -4,10 +4,10 @@ mod settings;
 mod templates;
 
 use run::run_settings::RunSettings;
-use settings::global_settings::GlobalSettings;
+use settings::{file::FileStorage, global_settings::GlobalSettings};
 
 fn main() {
-    let mut global_settings = GlobalSettings::init();
+    let mut global_settings = GlobalSettings::new(FileStorage::new(None));
     RunSettings::init(&mut global_settings);
     global_settings.write();
 

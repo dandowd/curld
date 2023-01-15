@@ -1,12 +1,55 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-/// Overwrites the entire content of a file with the provided string
-///
-/// # Panics
-/// If there is an error while getting the file or writing to the file
-/// Panics if .
-pub fn overwrite_file(file_loc: &String, content: &String) {
+use super::traits::Storage;
+
+pub struct FileStorage {
+    settings_file_path: String,
+}
+
+impl FileStorage {
+    pub fn new(file_path: Option<&str>) -> Box<FileStorage> {
+        if let Some(directory) = file_path {
+            Box::new(Self {
+                settings_file_path: directory.to_string(),
+            })
+        } else {
+            Box::new(Self {
+                settings_file_path: get_settings_file_loc(),
+            })
+        }
+    }
+}
+
+impl Storage for FileStorage {
+    fn write(&self, content: &str) {
+        overwrite_file(&self.settings_file_path, content)
+    }
+
+    fn get(&self) -> String {
+        if file_exists(&self.settings_file_path) {
+            get_file_str(&self.settings_file_path)
+        } else {
+            create_parent_dirs(&self.settings_file_path);
+
+            get_file_str(&self.settings_file_path)
+        }
+    }
+}
+
+fn get_settings_file_loc() -> String {
+    let global_settings_dir = get_config_dir();
+    format!("{dir}/curld/settings.json", dir = global_settings_dir)
+}
+
+fn get_config_dir() -> String {
+    let path = dirs::config_dir().expect("Unable to OS config dir");
+
+    path.to_str()
+        .expect("Unable to convert config dir to string")
+        .to_owned()
+}
+pub fn overwrite_file(file_loc: &String, content: &str) {
     let mut file = get_file(file_loc);
     match file.write_all(content.as_bytes()) {
         Ok(file) => file,
@@ -14,11 +57,6 @@ pub fn overwrite_file(file_loc: &String, content: &String) {
     };
 }
 
-/// Reads entire contents of a file into a string
-///
-/// # Panics
-/// If there is an error while getting the file or reading the file
-/// Panics if .
 pub fn get_file_str(file_loc: &String) -> String {
     let mut file = get_file(file_loc);
     let mut content = String::new();
@@ -39,11 +77,6 @@ pub fn create_parent_dirs(file_loc: &String) {
     std::fs::create_dir_all(prefix).expect("Unable to create directory for settings");
 }
 
-/// Retrieves a readable and writable file. It will create the file if it does not exist
-///
-/// # Panics
-/// If there is a problem while opening the file
-/// Panics if .
 fn get_file(file_loc: &String) -> File {
     let file_result = File::options()
         .create(true)

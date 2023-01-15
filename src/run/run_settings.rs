@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::settings::global_settings::GlobalSettings;
+use crate::settings::{file::FileStorage, global_settings::GlobalSettings};
 
 use super::TemplateBuilder;
 
@@ -68,7 +68,7 @@ impl RunSettings {
     }
 
     pub fn get() -> Self {
-        let global_settings = GlobalSettings::get();
+        let global_settings = GlobalSettings::new(FileStorage::new(None));
         let settings: SerializedSettings = global_settings.get_module(RUN_MODULE);
 
         Self {
@@ -90,3 +90,6 @@ impl SerializedSettings {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {}

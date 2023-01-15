@@ -5,9 +5,9 @@ use crate::settings::global_settings::GlobalSettings;
 
 use super::TemplateBuilder;
 
-pub static ENDPOINT_MODULE: &str = "endpoints";
+pub static RUN_MODULE: &str = "run";
 
-pub struct EndpointSettings {
+pub struct RunSettings {
     parent: GlobalSettings,
 
     settings: SerializedSettings,
@@ -25,7 +25,7 @@ struct SerializedSettings {
     history: Vec<TemplateBuilder>,
 }
 
-impl EndpointSettings {
+impl RunSettings {
     pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
         self.settings.saved.insert(id, history);
     }
@@ -63,13 +63,13 @@ impl EndpointSettings {
     }
 
     pub fn write(&mut self) {
-        self.parent.insert_module(ENDPOINT_MODULE, &self.settings);
+        self.parent.insert_module(RUN_MODULE, &self.settings);
         self.parent.write();
     }
 
     pub fn get() -> Self {
         let global_settings = GlobalSettings::get();
-        let settings: SerializedSettings = global_settings.get_module(ENDPOINT_MODULE);
+        let settings: SerializedSettings = global_settings.get_module(RUN_MODULE);
 
         Self {
             parent: global_settings,
@@ -78,7 +78,7 @@ impl EndpointSettings {
     }
 
     pub fn init(global_settings: &mut GlobalSettings) {
-        global_settings.init_module(ENDPOINT_MODULE, &SerializedSettings::default());
+        global_settings.init_module(RUN_MODULE, &SerializedSettings::default());
     }
 }
 

@@ -1,17 +1,15 @@
 use std::collections::HashMap;
 
+use crate::run::run_settings::RunSettings;
+
 use super::TemplateBuilder;
 
-use super::endpoint_settings::EndpointSettings;
 use super::run::run_with_args;
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
     #[arg(short, long)]
     pub id: Option<String>,
-
-    #[arg(short, long)]
-    pub endpoint: Option<String>,
 
     #[arg(raw = true)]
     pub cmd: Vec<String>,
@@ -27,40 +25,36 @@ pub struct HistoryInput {
 }
 
 #[derive(clap::Subcommand, Debug)]
-pub enum Endpoints {
+pub enum Run {
     Run(RunInput),
     History(HistoryInput),
     RunSaved { id: String },
     List,
 }
 
-pub fn endpoints_match(endpoint_cmd: &Endpoints) {
-    match endpoint_cmd {
-        Endpoints::Run(input) => {
-            let RunInput {
-                cmd,
-                endpoint: _,
-                id,
-            } = input;
+pub fn run_match(run_cmd: &Run) {
+    match run_cmd {
+        Run::Run(input) => {
+            let RunInput { cmd, id } = input;
             let mut template = TemplateBuilder::new(cmd.to_owned());
             let user_values = prompt_for_templates(&template.keys);
             template.insert_values(&user_values);
 
             let curl_output = run_with_args(template.cmd());
 
-            let mut endpoint_settings = EndpointSettings::get();
+            let mut run_settings = RunSettings::get();
 
             if let Some(id) = id {
-                endpoint_settings.add_saved(id.to_owned(), template.to_owned());
+                run_settings.add_saved(id.to_owned(), template.to_owned());
             }
 
-            endpoint_settings.insert_history(template);
-            endpoint_settings.write();
+            run_settings.insert_history(template);
+            run_settings.write();
 
             println!("{}", curl_output);
         }
-        Endpoints::RunSaved { id } => {
-            let settings = EndpointSettings::get();
+        Run::RunSaved { id } => {
+            let settings = RunSettings::get();
             let template = settings
                 .get_saved(id)
                 .expect("Could not find saved command");
@@ -69,14 +63,14 @@ pub fn endpoints_match(endpoint_cmd: &Endpoints) {
 
             print!("{}", curl_output)
         }
-        Endpoints::List => {
-            let settings = EndpointSettings::get();
+        Run::List => {
+            let settings = RunSettings::get();
             for id in settings.get_saved_keys() {
                 println!("{}", id);
             }
         }
-        Endpoints::History(input) => {
-            let settings = EndpointSettings::get();
+        Run::History(input) => {
+            let settings = RunSettings::get();
 
             if let Some(index) = input.run {
                 let cmd = settings.get_history_entry(index);

@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::run::run_cli::{endpoints_match, Endpoints};
+use crate::run::run_cli::{run_match, Run};
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -11,12 +11,12 @@ pub struct Args {
 #[derive(clap::Subcommand, Debug)]
 pub enum Commands {
     #[command(flatten)]
-    Endpoints(Endpoints),
+    Run(Run),
 }
 
 pub fn run() {
     let input = Args::parse();
     match &input.command {
-        Commands::Endpoints(variants) => endpoints_match(variants),
+        Commands::Run(variants) => run_match(variants),
     }
 }

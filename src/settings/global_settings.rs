@@ -131,6 +131,7 @@ mod tests {
             .once()
             .returning(move || Some(String::from(SETTINGS)));
         let mut global_settings = GlobalSettings::new(mock_storage);
+
         let module = to_string_pretty(&TestModule {
             name: "inserted_module".to_string(),
         })

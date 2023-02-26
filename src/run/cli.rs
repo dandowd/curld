@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use crate::run::run_settings::RunSettings;
+use crate::run::settings::RunSettings;
 
 use super::TemplateBuilder;
 
-use super::run::run_with_args;
+use super::utils::run_with_args;
 
 #[derive(clap::Args, Debug)]
 pub struct RunInput {
@@ -25,16 +25,16 @@ pub struct HistoryInput {
 }
 
 #[derive(clap::Subcommand, Debug)]
-pub enum Run {
+pub enum Command {
     Run(RunInput),
     History(HistoryInput),
     RunSaved { id: String },
     List,
 }
 
-pub fn run_match(run_cmd: &Run) {
+pub fn run_match(run_cmd: &Command) {
     match run_cmd {
-        Run::Run(input) => {
+        Command::Run(input) => {
             let RunInput { cmd, id } = input;
             let mut template = TemplateBuilder::new(cmd.to_owned());
             let user_values = prompt_for_templates(&template.keys);
@@ -53,7 +53,7 @@ pub fn run_match(run_cmd: &Run) {
 
             println!("{}", curl_output);
         }
-        Run::RunSaved { id } => {
+        Command::RunSaved { id } => {
             let settings = RunSettings::get();
             let template = settings
                 .get_saved(id)
@@ -63,13 +63,13 @@ pub fn run_match(run_cmd: &Run) {
 
             print!("{}", curl_output)
         }
-        Run::List => {
+        Command::List => {
             let settings = RunSettings::get();
             for id in settings.get_saved_keys() {
                 println!("{}", id);
             }
         }
-        Run::History(input) => {
+        Command::History(input) => {
             let settings = RunSettings::get();
 
             if let Some(index) = input.run {

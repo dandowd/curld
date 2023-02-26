@@ -3,7 +3,7 @@ mod run;
 mod settings;
 mod templates;
 
-use run::run_settings::RunSettings;
+use run::settings::RunSettings;
 use settings::{file::FileStorage, global_settings::GlobalSettings};
 
 fn main() {

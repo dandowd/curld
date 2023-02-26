@@ -26,13 +26,12 @@ impl Storage for FileStorage {
         overwrite_file(&self.settings_file_path, content)
     }
 
-    fn get(&self) -> String {
+    fn get(&self) -> Option<String> {
         if file_exists(&self.settings_file_path) {
-            get_file_str(&self.settings_file_path)
+            Some(get_file_str(&self.settings_file_path))
         } else {
             create_parent_dirs(&self.settings_file_path);
-
-            get_file_str(&self.settings_file_path)
+            None
         }
     }
 }

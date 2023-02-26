@@ -21,10 +21,11 @@ struct SerializeSettings {
 
 impl GlobalSettings {
     pub fn new(storage: Box<dyn Storage>) -> Self {
-        let settings_json = storage.get();
-        let serialized_settings = match from_str(&settings_json) {
-            Ok(global_settings) => global_settings,
-            Err(error) => panic!("Unable to serialize settings due to error: {:?}", error),
+        let serialized_settings = match storage.get() {
+            Some(global_settings) => {
+                from_str(&global_settings).expect("Unable to serialize settings due to error")
+            }
+            None => SerializeSettings::default(),
         };
 
         Self {

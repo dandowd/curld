@@ -119,7 +119,7 @@ mod tests {
         mock_storage
             .expect_get()
             .once()
-            .returning(move || String::from(SETTINGS));
+            .returning(move || Some(String::from(SETTINGS)));
         GlobalSettings::new(mock_storage);
     }
 
@@ -129,7 +129,7 @@ mod tests {
         mock_storage
             .expect_get()
             .once()
-            .returning(move || String::from(SETTINGS));
+            .returning(move || Some(String::from(SETTINGS)));
         let mut global_settings = GlobalSettings::new(mock_storage);
         let module = to_string_pretty(&TestModule {
             name: "inserted_module".to_string(),
@@ -145,7 +145,7 @@ mod tests {
         mock_storage
             .expect_get()
             .once()
-            .returning(move || String::from(SETTINGS));
+            .returning(move || Some(String::from(SETTINGS)));
         let global_settings = GlobalSettings::new(mock_storage);
 
         let module: TestModule = global_settings.get_module("test_module");

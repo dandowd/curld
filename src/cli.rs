@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use crate::run::cli::{run_match, Command};
+use crate::run::cli::{run_match, RunCommand};
 
 #[derive(Parser, Debug)]
 pub struct Args {
@@ -11,7 +11,7 @@ pub struct Args {
 #[derive(clap::Subcommand, Debug)]
 pub enum Commands {
     #[command(flatten)]
-    Run(Command),
+    Run(RunCommand),
 }
 
 pub fn run() {

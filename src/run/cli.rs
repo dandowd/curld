@@ -25,16 +25,16 @@ pub struct HistoryInput {
 }
 
 #[derive(clap::Subcommand, Debug)]
-pub enum Command {
+pub enum RunCommand {
     Run(RunInput),
     History(HistoryInput),
     RunSaved { id: String },
     List,
 }
 
-pub fn run_match(run_cmd: &Command) {
+pub fn run_match(run_cmd: &RunCommand) {
     match run_cmd {
-        Command::Run(input) => {
+        RunCommand::Run(input) => {
             let RunInput { cmd, id } = input;
             let mut template = TemplateBuilder::new(cmd.to_owned());
             let user_values = prompt_for_templates(&template.keys);
@@ -53,7 +53,7 @@ pub fn run_match(run_cmd: &Command) {
 
             println!("{}", curl_output);
         }
-        Command::RunSaved { id } => {
+        RunCommand::RunSaved { id } => {
             let settings = RunSettings::get();
             let template = settings
                 .get_saved(id)
@@ -63,13 +63,13 @@ pub fn run_match(run_cmd: &Command) {
 
             print!("{}", curl_output)
         }
-        Command::List => {
+        RunCommand::List => {
             let settings = RunSettings::get();
             for id in settings.get_saved_keys() {
                 println!("{}", id);
             }
         }
-        Command::History(input) => {
+        RunCommand::History(input) => {
             let settings = RunSettings::get();
 
             if let Some(index) = input.run {

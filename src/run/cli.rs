@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
 use crate::run::settings::RunSettings;
+use crate::settings::file::FileStorage;
+use crate::settings::global_settings::GlobalSettings;
 
 use super::TemplateBuilder;
 
@@ -33,6 +35,9 @@ pub enum RunCommand {
 }
 
 pub fn run_match(run_cmd: &RunCommand) {
+    let mut global_settings = GlobalSettings::new(FileStorage::new(None));
+    let mut run_settings = RunSettings::new(global_settings);
+
     match run_cmd {
         RunCommand::Run(input) => {
             let RunInput { cmd, id } = input;
@@ -41,8 +46,6 @@ pub fn run_match(run_cmd: &RunCommand) {
             template.insert_values(&user_values);
 
             let curl_output = run_with_args(template.cmd());
-
-            let mut run_settings = RunSettings::get();
 
             if let Some(id) = id {
                 run_settings.add_saved(id.to_owned(), template.to_owned());
@@ -54,8 +57,7 @@ pub fn run_match(run_cmd: &RunCommand) {
             println!("{}", curl_output);
         }
         RunCommand::RunSaved { id } => {
-            let settings = RunSettings::get();
-            let template = settings
+            let template = run_settings
                 .get_saved(id)
                 .expect("Could not find saved command");
 
@@ -64,16 +66,13 @@ pub fn run_match(run_cmd: &RunCommand) {
             print!("{}", curl_output)
         }
         RunCommand::List => {
-            let settings = RunSettings::get();
-            for id in settings.get_saved_keys() {
+            for id in run_settings.get_saved_keys() {
                 println!("{}", id);
             }
         }
         RunCommand::History(input) => {
-            let settings = RunSettings::get();
-
             if let Some(index) = input.run {
-                let cmd = settings.get_history_entry(index);
+                let cmd = run_settings.get_history_entry(index);
                 match cmd {
                     Some(args) => {
                         let output = run_with_args(args.cmd());
@@ -84,7 +83,7 @@ pub fn run_match(run_cmd: &RunCommand) {
             }
 
             if input.list {
-                for history in settings.get_history_entries() {
+                for history in run_settings.get_history_entries() {
                     println!("{:?}", history);
                 }
             }

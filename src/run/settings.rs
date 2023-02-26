@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::settings::{file::FileStorage, global_settings::GlobalSettings};
+use crate::settings::traits::StoredSettings;
 
 use super::TemplateBuilder;
 
 pub static RUN_MODULE: &str = "run";
 
 pub struct RunSettings {
-    parent: GlobalSettings,
+    parent: Box<dyn StoredSettings<SerializedSettings>>,
 
     settings: SerializedSettings,
 }
@@ -64,21 +64,15 @@ impl RunSettings {
 
     pub fn write(&mut self) {
         self.parent.insert_module(RUN_MODULE, &self.settings);
-        self.parent.write();
     }
 
-    pub fn get() -> Self {
-        let global_settings = GlobalSettings::new(FileStorage::new(None));
-        let settings: SerializedSettings = global_settings.get_module(RUN_MODULE);
+    pub fn new(stored_settings: Box<dyn StoredSettings<SerializedSettings>>) -> Self {
+        let settings: SerializedSettings = stored_settings.get_module(RUN_MODULE);
 
         Self {
-            parent: global_settings,
+            parent: stored_settings,
             settings,
         }
-    }
-
-    pub fn init(global_settings: &mut GlobalSettings) {
-        global_settings.init_module(RUN_MODULE, &SerializedSettings::default());
     }
 }
 

@@ -1,9 +1,9 @@
 use dirs;
-use serde::{de, ser, Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 use serde_json::{from_str, from_value, json, to_string_pretty, Value};
 use std::collections::HashMap;
 
-use super::traits::Storage;
+use super::traits::{Storage, StoredSettings};
 
 pub struct GlobalSettings {
     storage: Box<dyn Storage>,
@@ -19,25 +19,8 @@ struct SerializeSettings {
     module_settings: HashMap<String, Value>,
 }
 
-impl GlobalSettings {
-    pub fn new(storage: Box<dyn Storage>) -> Self {
-        let serialized_settings = match storage.get() {
-            Some(global_settings) => {
-                from_str(&global_settings).expect("Unable to serialize settings due to error")
-            }
-            None => SerializeSettings::default(),
-        };
-
-        Self {
-            storage,
-            settings: serialized_settings,
-        }
-    }
-
-    pub fn get_module<T>(&self, module_name: &str) -> T
-    where
-        T: de::DeserializeOwned,
-    {
+impl<T: de::DeserializeOwned + Serialize> StoredSettings<T> for GlobalSettings {
+    fn get_module(&self, module_name: &str) -> T {
         let module_settings = match self.settings.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
             None => panic!(
@@ -54,12 +37,27 @@ impl GlobalSettings {
         module_settings
     }
 
-    pub fn insert_module<T: ser::Serialize>(&mut self, module_name: &str, settings: &T) -> &Self {
+    fn insert_module(&mut self, module_name: &str, settings: &T) {
         let converted_settings = json!(settings);
         self.settings
             .module_settings
             .insert(module_name.to_string(), converted_settings);
-        self
+    }
+}
+
+impl GlobalSettings {
+    pub fn new(storage: Box<dyn Storage>) -> Box<Self> {
+        let serialized_settings = match storage.get() {
+            Some(global_settings) => {
+                from_str(&global_settings).expect("Unable to serialize settings due to error")
+            }
+            None => SerializeSettings::default(),
+        };
+
+        Box::new(Self {
+            storage,
+            settings: serialized_settings,
+        })
     }
 
     pub fn write(&self) {
@@ -71,12 +69,6 @@ impl GlobalSettings {
 
     pub fn module_exists(&self, module_name: &String) -> bool {
         self.settings.module_settings.contains_key(module_name)
-    }
-
-    pub fn init_module<T: ser::Serialize>(&mut self, module_name: &str, default_settings: T) {
-        if !self.module_exists(&module_name.to_string()) {
-            self.insert_module(module_name, &default_settings);
-        }
     }
 }
 

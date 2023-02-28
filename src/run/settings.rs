@@ -8,13 +8,13 @@ use super::TemplateBuilder;
 pub static RUN_MODULE: &str = "run";
 
 pub struct RunSettings<'a> {
-    parent: &'a mut Box<dyn StoredSettings<SerializedSettings>>,
+    parent: &'a mut dyn StoredSettings<SerializedSettings>,
 
     settings: SerializedSettings,
 }
 
 #[derive(Deserialize, Serialize, Default)]
-struct SerializedSettings {
+pub struct SerializedSettings {
     #[serde(default)]
     saved: HashMap<String, TemplateBuilder>,
 
@@ -66,7 +66,7 @@ impl<'a> RunSettings<'a> {
         self.parent.insert_module(RUN_MODULE, &self.settings);
     }
 
-    pub fn new<'b>(stored_settings: &mut Box<dyn StoredSettings<SerializedSettings> + 'b>) -> Self {
+    pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<SerializedSettings>) -> Self {
         let settings: SerializedSettings = stored_settings.get_module(RUN_MODULE);
 
         Self {

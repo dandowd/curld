@@ -46,7 +46,7 @@ impl<T: de::DeserializeOwned + Serialize> StoredSettings<T> for GlobalSettings {
 }
 
 impl GlobalSettings {
-    pub fn new(storage: Box<dyn Storage>) -> Box<Self> {
+    pub fn new(storage: Box<dyn Storage>) -> Self {
         let serialized_settings = match storage.get() {
             Some(global_settings) => {
                 from_str(&global_settings).expect("Unable to serialize settings due to error")
@@ -54,10 +54,10 @@ impl GlobalSettings {
             None => SerializeSettings::default(),
         };
 
-        Box::new(Self {
+        Self {
             storage,
             settings: serialized_settings,
-        })
+        }
     }
 
     pub fn write(&self) {
@@ -65,10 +65,6 @@ impl GlobalSettings {
             .expect("Unable to parse global settings for module {}");
 
         self.storage.write(&settings_str);
-    }
-
-    pub fn module_exists(&self, module_name: &String) -> bool {
-        self.settings.module_settings.contains_key(module_name)
     }
 }
 

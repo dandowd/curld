@@ -69,7 +69,7 @@ impl<'a> RunSettings<'a> {
     pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<RunSerializedSettings>) -> Self {
         let settings: RunSerializedSettings = stored_settings
             .get_module(RUN_MODULE)
-            .unwrap_or(RunSerializedSettings::default());
+            .unwrap_or_else(RunSerializedSettings::default);
 
         Self {
             parent: stored_settings,

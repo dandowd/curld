@@ -13,6 +13,6 @@ pub trait StoredSettings<T>
 where
     T: de::DeserializeOwned + Serialize,
 {
-    fn get_module(&self, module_name: &str) -> T;
+    fn get_module(&self, module_name: &str) -> Option<T>;
     fn insert_module(&mut self, module_name: &str, settings: &T);
 }

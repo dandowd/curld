@@ -20,13 +20,10 @@ struct SerializeSettings {
 }
 
 impl<T: de::DeserializeOwned + Serialize> StoredSettings<T> for GlobalSettings {
-    fn get_module(&self, module_name: &str) -> T {
+    fn get_module(&self, module_name: &str) -> Option<T> {
         let module_settings = match self.settings.module_settings.get(module_name) {
             Some(module_settings) => module_settings,
-            None => panic!(
-                "No settings found for module {module_name}",
-                module_name = module_name
-            ),
+            None => return None,
         };
 
         let module_settings: T = match from_value(module_settings.to_owned()) {
@@ -34,7 +31,7 @@ impl<T: de::DeserializeOwned + Serialize> StoredSettings<T> for GlobalSettings {
             Err(error) => panic!("Unable to parse module settings due to error {:?}", error),
         };
 
-        module_settings
+        Some(module_settings)
     }
 
     fn insert_module(&mut self, module_name: &str, settings: &T) {
@@ -137,7 +134,9 @@ mod tests {
             .returning(move || Some(String::from(SETTINGS)));
         let global_settings = GlobalSettings::new(mock_storage);
 
-        let module: TestModule = global_settings.get_module("test_module");
+        let module: TestModule = global_settings
+            .get_module("test_module")
+            .expect("Could not fetch TestModule when it should be available");
 
         assert_eq!(module.name, "test module");
     }

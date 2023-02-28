@@ -36,7 +36,7 @@ pub enum RunCommand {
 
 pub fn run_match(run_cmd: &RunCommand) {
     let mut global_settings = GlobalSettings::new(FileStorage::new(None));
-    let mut run_settings = RunSettings::new(global_settings);
+    let mut run_settings = RunSettings::new(&mut global_settings);
 
     match run_cmd {
         RunCommand::Run(input) => {
@@ -89,6 +89,8 @@ pub fn run_match(run_cmd: &RunCommand) {
             }
         }
     }
+
+    global_settings.write();
 }
 
 fn prompt_for_templates(template_keys: &Vec<String>) -> HashMap<String, String> {

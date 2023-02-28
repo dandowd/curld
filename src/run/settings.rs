@@ -7,8 +7,8 @@ use super::TemplateBuilder;
 
 pub static RUN_MODULE: &str = "run";
 
-pub struct RunSettings {
-    parent: Box<dyn StoredSettings<SerializedSettings>>,
+pub struct RunSettings<'a> {
+    parent: &'a mut Box<dyn StoredSettings<SerializedSettings>>,
 
     settings: SerializedSettings,
 }
@@ -25,7 +25,7 @@ struct SerializedSettings {
     history: Vec<TemplateBuilder>,
 }
 
-impl RunSettings {
+impl<'a> RunSettings<'a> {
     pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
         self.settings.saved.insert(id, history);
     }
@@ -66,7 +66,7 @@ impl RunSettings {
         self.parent.insert_module(RUN_MODULE, &self.settings);
     }
 
-    pub fn new(stored_settings: Box<dyn StoredSettings<SerializedSettings>>) -> Self {
+    pub fn new<'b>(stored_settings: &mut Box<dyn StoredSettings<SerializedSettings> + 'b>) -> Self {
         let settings: SerializedSettings = stored_settings.get_module(RUN_MODULE);
 
         Self {

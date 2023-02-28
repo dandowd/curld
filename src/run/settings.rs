@@ -7,14 +7,14 @@ use super::TemplateBuilder;
 
 pub static RUN_MODULE: &str = "run";
 
-pub struct RunSettings<'a> {
-    parent: &'a mut dyn StoredSettings<RunSerializedSettings>,
+pub struct RunManager<'a> {
+    parent: &'a mut dyn StoredSettings<RunSettings>,
 
-    settings: RunSerializedSettings,
+    settings: RunSettings,
 }
 
 #[derive(Deserialize, Serialize, Default)]
-pub struct RunSerializedSettings {
+pub struct RunSettings {
     #[serde(default)]
     saved: HashMap<String, TemplateBuilder>,
 
@@ -25,7 +25,7 @@ pub struct RunSerializedSettings {
     history: Vec<TemplateBuilder>,
 }
 
-impl<'a> RunSettings<'a> {
+impl<'a> RunManager<'a> {
     pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
         self.settings.saved.insert(id, history);
     }
@@ -66,10 +66,10 @@ impl<'a> RunSettings<'a> {
         self.parent.insert_module(RUN_MODULE, &self.settings);
     }
 
-    pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<RunSerializedSettings>) -> Self {
-        let settings: RunSerializedSettings = stored_settings
+    pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<RunSettings>) -> Self {
+        let settings: RunSettings = stored_settings
             .get_module(RUN_MODULE)
-            .unwrap_or_else(RunSerializedSettings::default);
+            .unwrap_or_else(RunSettings::default);
 
         Self {
             parent: stored_settings,
@@ -78,7 +78,7 @@ impl<'a> RunSettings<'a> {
     }
 }
 
-impl RunSerializedSettings {
+impl RunSettings {
     pub fn default() -> Self {
         Self {
             history_len: 10,

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::run::settings::RunSettings;
+use crate::run::settings::RunManager;
 use crate::settings::file::FileStorage;
 use crate::settings::global_settings::GlobalSettings;
 
@@ -36,7 +36,7 @@ pub enum RunCommand {
 
 pub fn run_match(run_cmd: &RunCommand) {
     let mut global_settings = GlobalSettings::new(FileStorage::new(None));
-    let mut run_settings = RunSettings::new(&mut global_settings);
+    let mut run_settings = RunManager::new(&mut global_settings);
 
     match run_cmd {
         RunCommand::Run(input) => {

@@ -4,6 +4,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::settings::traits::StoredSettings;
 
+pub static WORKSPACE_MODULE: &str = "workspace";
+
+pub struct WorkspaceManager<'a> {
+    stored_settings: &'a dyn StoredSettings<WorkspaceSettings>,
+
+    workspace_settings: WorkspaceSettings,
+}
+
 #[derive(Deserialize, Serialize, Default)]
 pub struct WorkspaceSettings {
     pub current_workspace: String,
@@ -16,11 +24,15 @@ pub struct Workspace {
     pub headers: Vec<String>,
 }
 
-impl WorkspaceSettings {
-    fn new(stored_settings: Box<dyn StoredSettings<WorkspaceSettings>>) -> Self {
+impl<'a> WorkspaceManager<'a> {
+    fn new<'b: 'a>(stored_settings: &'b dyn StoredSettings<WorkspaceSettings>) -> Self {
+        let workspace_settings = stored_settings
+            .get_module(WORKSPACE_MODULE)
+            .unwrap_or_else(Default::default);
+
         Self {
-            current_workspace: String::from("default"),
-            workspaces: HashMap::new(),
+            stored_settings,
+            workspace_settings,
         }
     }
 }

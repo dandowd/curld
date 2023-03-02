@@ -80,7 +80,7 @@ impl RunCli {
             }
             RunCommand::List => {
                 for id in run_settings.get_saved_keys() {
-                    println!("{}", id);
+                    (self.output)(&id);
                 }
             }
             RunCommand::History(input) => {
@@ -89,9 +89,9 @@ impl RunCli {
                     match cmd {
                         Some(args) => {
                             let output = run_with_args(args.cmd());
-                            println!("{}", output);
+                            (self.output)(&output);
                         }
-                        None => println!("No history at index {}", index),
+                        None => (self.output)(&index.to_string()),
                     }
                 }
 

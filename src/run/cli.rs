@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use crate::run::settings::RunManager;
-use crate::settings::file::FileStorage;
-use crate::settings::global_settings::GlobalSettings;
+use crate::settings::traits::StoredSettings;
 
 use super::TemplateBuilder;
 
+use super::settings::RunSettings;
 use super::utils::run_with_args;
 
 #[derive(clap::Args, Debug)]
@@ -34,9 +34,8 @@ pub enum RunCommand {
     List,
 }
 
-pub fn run_match(run_cmd: &RunCommand) {
-    let mut global_settings = GlobalSettings::new(FileStorage::new(None));
-    let mut run_settings = RunManager::new(&mut global_settings);
+pub fn run_match(run_cmd: &RunCommand, stored_settings: &mut dyn StoredSettings<RunSettings>) {
+    let mut run_settings = RunManager::new(stored_settings);
 
     match run_cmd {
         RunCommand::Run(input) => {
@@ -88,8 +87,6 @@ pub fn run_match(run_cmd: &RunCommand) {
             }
         }
     }
-
-    global_settings.write();
 }
 
 fn prompt_for_templates(template_keys: &Vec<String>) -> HashMap<String, String> {

@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::settings::traits::StoredSettings;
-
-use super::TemplateBuilder;
+use crate::{settings::traits::StoredSettings, variables::variables_builder::VariablesBuilder};
 
 pub static RUN_MODULE: &str = "run";
 
@@ -16,21 +14,21 @@ pub struct RunManager<'a> {
 #[derive(Deserialize, Serialize, Default)]
 pub struct RunSettings {
     #[serde(default)]
-    saved: HashMap<String, TemplateBuilder>,
+    saved: HashMap<String, VariablesBuilder>,
 
     #[serde(default)]
     history_len: usize,
 
     #[serde(default)]
-    history: Vec<TemplateBuilder>,
+    history: Vec<VariablesBuilder>,
 }
 
 impl<'a> RunManager<'a> {
-    pub fn add_saved(&mut self, id: String, history: TemplateBuilder) {
+    pub fn add_saved(&mut self, id: String, history: VariablesBuilder) {
         self.settings.saved.insert(id, history);
     }
 
-    pub fn get_saved(&self, id: &String) -> Option<&TemplateBuilder> {
+    pub fn get_saved(&self, id: &String) -> Option<&VariablesBuilder> {
         self.settings.saved.get(id)
     }
 
@@ -38,7 +36,7 @@ impl<'a> RunManager<'a> {
         self.settings.saved.keys().map(|k| k.to_string()).collect()
     }
 
-    pub fn insert_history(&mut self, cmd: TemplateBuilder) {
+    pub fn insert_history(&mut self, cmd: VariablesBuilder) {
         self.settings.history.push(cmd);
         self.settings.history.truncate(self.settings.history_len);
 
@@ -60,7 +58,7 @@ impl<'a> RunManager<'a> {
             .collect()
     }
 
-    pub fn get_history_entry(&self, index: usize) -> Option<&TemplateBuilder> {
+    pub fn get_history_entry(&self, index: usize) -> Option<&VariablesBuilder> {
         self.settings.history.get(index)
     }
 

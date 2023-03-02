@@ -1,7 +1,7 @@
 mod cli;
 mod run;
 mod settings;
-mod templates;
+mod variables;
 mod workspaces;
 
 fn main() {

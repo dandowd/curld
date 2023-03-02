@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use super::parse;
 
 #[derive(Deserialize, Serialize, Clone, Default, Debug)]
-pub struct TemplateBuilder {
+pub struct VariablesBuilder {
     #[serde(default)]
     pub keys: Vec<String>,
 
@@ -16,15 +16,15 @@ pub struct TemplateBuilder {
     pub original_args: Vec<String>,
 }
 
-impl TemplateBuilder {
+impl VariablesBuilder {
     pub fn new(curl_cmd: Vec<String>) -> Self {
-        let template_names = curl_cmd
+        let variable_names = curl_cmd
             .iter()
-            .flat_map(|input| parse::extract_template_names(input))
+            .flat_map(|input| parse::extract_variable_names(input))
             .collect();
 
         Self {
-            keys: template_names,
+            keys: variable_names,
             original_args: curl_cmd,
             value_map: HashMap::new(),
         }
@@ -41,12 +41,12 @@ impl TemplateBuilder {
 
         self.original_args
             .iter()
-            .map(|field| parse::insert_template_values(field, &self.value_map))
+            .map(|field| parse::insert_variable_values(field, &self.value_map))
             .collect()
     }
 
     pub fn build_string(&self) -> String {
-        parse::insert_template_values(&self.original_args.join(" "), &self.value_map)
+        parse::insert_variable_values(&self.original_args.join(" "), &self.value_map)
     }
 }
 
@@ -55,7 +55,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn should_build_string_from_cmd_with_templates() {
+    fn should_build_string_from_cmd_with_variables() {
         let curl_cmd: Vec<String> = [
             "-X",
             "POST",
@@ -71,17 +71,17 @@ mod tests {
             ("base_url".to_string(), "test.com".to_string()),
         ]);
 
-        let mut templates = TemplateBuilder::new(curl_cmd);
-        templates.insert_values(&value_map);
+        let mut variables = VariablesBuilder::new(curl_cmd);
+        variables.insert_values(&value_map);
 
         assert_eq!(
-            templates.build_string(),
+            variables.build_string(),
             r#"-X POST -d { "one": "one_value" } https://test.com"#
         )
     }
 
     #[test]
-    fn should_extract_templates_from_cmd() {
+    fn should_extract_variables_from_cmd() {
         let curl_cmd = vec![
             "-X".to_string(),
             "${method}".to_string(),
@@ -90,13 +90,13 @@ mod tests {
             "https://${base_url}.com/${env}/resource".to_string(),
         ];
 
-        let templates = TemplateBuilder::new(curl_cmd);
+        let variables = VariablesBuilder::new(curl_cmd);
 
-        assert!(templates.keys.contains(&String::from("method")));
-        assert!(templates.keys.contains(&String::from("one")));
-        assert!(templates.keys.contains(&String::from("three")));
-        assert!(templates.keys.contains(&String::from("base_url")));
-        assert!(templates.keys.contains(&String::from("env")));
+        assert!(variables.keys.contains(&String::from("method")));
+        assert!(variables.keys.contains(&String::from("one")));
+        assert!(variables.keys.contains(&String::from("three")));
+        assert!(variables.keys.contains(&String::from("base_url")));
+        assert!(variables.keys.contains(&String::from("env")));
     }
 
     #[test]
@@ -108,7 +108,7 @@ mod tests {
             r#"{ "one": ${one}, "two": "no_two", "three": "${three}" }"#.to_string(),
             "https://${base_url}.com/${env}/resource".to_string(),
         ];
-        let mut template = TemplateBuilder::new(curl_cmd);
+        let mut variable = VariablesBuilder::new(curl_cmd);
         let value_map = HashMap::from([
             ("method".to_string(), "GET".to_string()),
             ("one".to_string(), "one_value".to_string()),
@@ -117,10 +117,10 @@ mod tests {
             ("env".to_string(), "test_env".to_string()),
         ]);
 
-        template.insert_values(&value_map);
+        variable.insert_values(&value_map);
 
         assert_eq!(
-            template.cmd(),
+            variable.cmd(),
             vec![
                 "-X",
                 "GET",

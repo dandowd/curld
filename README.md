@@ -10,7 +10,7 @@ I wanted to have some of the features that Postman and Insomnia have, but from t
 
 `curld run -- -X POST httpbin.org/post -H "accept: application/json"`
 
-### Template syntax
+### Variable syntax
 You can use templates to be prompted for input when you run a command. This is useful when running a saved command.
 
 The syntax is `\${var}` or `'${var}'` (note that the $ must either be escaped or inside single quotes) where `var` is the name of the item you want to be prompted for.

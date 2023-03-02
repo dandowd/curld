@@ -1,7 +1,6 @@
 use crate::settings::traits::StoredSettings;
+use crate::variables::variables_builder::VariablesBuilder;
 use std::collections::HashMap;
-
-use super::TemplateBuilder;
 
 use super::settings::RunManager;
 use super::settings::RunSettings;
@@ -56,7 +55,7 @@ impl RunCli {
         match run_cmd {
             RunCommand::Run(input) => {
                 let RunInput { cmd, id } = input;
-                let mut template = TemplateBuilder::new(cmd.to_owned());
+                let mut template = VariablesBuilder::new(cmd.to_owned());
                 let user_values = self.prompt_for_templates(&template.keys);
                 template.insert_values(&user_values);
 

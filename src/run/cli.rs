@@ -52,7 +52,7 @@ pub fn run_match(run_cmd: &RunCommand) {
             }
 
             run_settings.insert_history(template);
-            run_settings.write();
+            run_settings.save();
 
             println!("{}", curl_output);
         }

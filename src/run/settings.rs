@@ -62,7 +62,7 @@ impl<'a> RunManager<'a> {
         self.settings.history.get(index)
     }
 
-    pub fn write(&mut self) {
+    pub fn save(&mut self) {
         self.parent.insert_module(RUN_MODULE, &self.settings);
     }
 

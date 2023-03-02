@@ -41,6 +41,8 @@ impl<'a> RunManager<'a> {
     pub fn insert_history(&mut self, cmd: TemplateBuilder) {
         self.settings.history.push(cmd);
         self.settings.history.truncate(self.settings.history_len);
+
+        self.save_to_parent();
     }
 
     pub fn get_history_entries(&self) -> Vec<String> {
@@ -62,7 +64,7 @@ impl<'a> RunManager<'a> {
         self.settings.history.get(index)
     }
 
-    pub fn save(&mut self) {
+    fn save_to_parent(&mut self) {
         self.parent.insert_module(RUN_MODULE, &self.settings);
     }
 

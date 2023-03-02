@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-pub(super) fn extract_template_names(templated: &str) -> Vec<String> {
+pub fn extract_template_names(templated: &str) -> Vec<String> {
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
     let mut alt_templated = templated.to_owned();
@@ -47,7 +47,7 @@ mod tests {
 
     #[test]
     fn extract_template_names_should_parse() {
-        let test_str = "--request ${method} https://${base_url}/v1/${endpoint}";
+        let test_str = "-X ${method} https://${base_url}/v1/${endpoint}";
 
         let mut names = extract_template_names(&test_str);
         // Order the vector because the HashSet order is non-deterministic

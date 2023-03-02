@@ -55,7 +55,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn should_convert_to_string() {
+    fn should_build_string_from_cmd_with_templates() {
         let curl_cmd: Vec<String> = [
             "-X",
             "POST",
@@ -83,7 +83,7 @@ mod tests {
     #[test]
     fn should_extract_templates_from_cmd() {
         let curl_cmd = vec![
-            "--request".to_string(),
+            "-X".to_string(),
             "${method}".to_string(),
             "-d".to_string(),
             "'{ 'one': ${one}, 'two': 'no_two', 'three': '${three}' }'".to_string(),
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn should_return_cmd_with_inserted_values() {
         let curl_cmd = vec![
-            "--request".to_string(),
+            "-X".to_string(),
             "${method}".to_string(),
             "-d".to_string(),
             r#"{ "one": ${one}, "two": "no_two", "three": "${three}" }"#.to_string(),
@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(
             template.cmd(),
             vec![
-                "--request",
+                "-X",
                 "GET",
                 "-d",
                 r#"{ "one": one_value, "two": "no_two", "three": "three_value" }"#,

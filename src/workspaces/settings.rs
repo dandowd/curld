@@ -38,4 +38,13 @@ impl<'a> WorkspaceManager<'a> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::settings::traits::MockStoredSettings;
+
+    use super::*;
+
+    fn should_use_workspace_settings() {
+        let stored_settings = MockStoredSettings::new();
+        let manager = WorkspaceManager::new(&stored_settings);
+    }
+}

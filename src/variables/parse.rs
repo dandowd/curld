@@ -1,12 +1,19 @@
 use std::collections::{HashMap, HashSet};
 
+static VAR_OPEN: &str = "${";
+static VAR_CLOSE: &str = "}";
+
 pub fn extract_variable_names(templated: &str) -> Vec<String> {
+    extract_variables(VAR_OPEN, VAR_CLOSE, templated)
+}
+
+pub fn extract_variables(opening: &str, closing: &str, templated: &str) -> Vec<String> {
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
     let mut alt_variabled = templated.to_owned();
 
-    while let Some(start_index) = alt_variabled.find("${") {
-        let end_offset = match alt_variabled[start_index..].find('}') {
+    while let Some(start_index) = alt_variabled.find(opening) {
+        let end_offset = match alt_variabled[start_index..].find(closing) {
             Some(index) => index,
             None => {
                 panic!("Parsing error in variable: found opening brace but no closing")
@@ -34,7 +41,7 @@ pub fn extract_variable_names(templated: &str) -> Vec<String> {
 pub fn insert_variable_values(templated_str: &str, value_map: &HashMap<String, String>) -> String {
     let mut cloned_variabled_str = templated_str.to_owned();
     for (key, value) in value_map {
-        let replace_key = format!("${{{0}}}", key);
+        let replace_key = format!("{0}{1}{2}", VAR_OPEN, key, VAR_CLOSE);
         cloned_variabled_str = cloned_variabled_str.replace(&replace_key, value);
     }
 
@@ -44,6 +51,9 @@ pub fn insert_variable_values(templated_str: &str, value_map: &HashMap<String, S
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn extract_workspace_variable() {}
 
     #[test]
     fn extract_variable_names_should_parse() {

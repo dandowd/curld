@@ -23,7 +23,7 @@ impl IO {
     }
 
     pub fn output(message: &str) {
-        print!("{}", message);
+        println!("{}", message);
     }
 }
 

@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 pub fn extract_variable_names(templated: &str, opening: &str, closing: &str) -> Vec<String> {
+    let opening_len = opening.len();
     // Use a HashSet to ensure there are no duplicates
     let mut names: HashSet<String> = HashSet::new();
     let mut alt_variabled = templated.to_owned();
@@ -14,7 +15,7 @@ pub fn extract_variable_names(templated: &str, opening: &str, closing: &str) -> 
         };
 
         let end_index = start_index + end_offset;
-        match alt_variabled[start_index + 2..end_index].find("${") {
+        match alt_variabled[start_index + opening_len..end_index].find(opening) {
             Some(index) => panic!(
                 "Parsing error in variable: found open bracket at {index}, expecting closing bracket",
                 index = index
@@ -22,7 +23,7 @@ pub fn extract_variable_names(templated: &str, opening: &str, closing: &str) -> 
             None => 0,
         };
 
-        let variable_name = String::from(&alt_variabled[start_index + 2..end_index]);
+        let variable_name = String::from(&alt_variabled[start_index + opening_len..end_index]);
         names.insert(variable_name);
 
         alt_variabled = String::from(&alt_variabled[end_index + 1..]);
@@ -58,7 +59,7 @@ mod tests {
 
     #[test]
     fn insert_workspace_variables() {
-        let test_str = "-X https://$w{base_url}/$w{version}/${endpoint}";
+        let test_str = "-X ${METHOD} https://$w{base_url}/$w{version}/${endpoint}";
         let mut workspace_variables = HashMap::new();
         workspace_variables.insert("base_url".to_string(), "test.com".to_string());
         workspace_variables.insert("version".to_string(), "v1".to_string());
@@ -68,7 +69,7 @@ mod tests {
 
         assert_eq!(
             workspace_inserted,
-            "-X https://test.com/version/${endpoint}"
+            "-X ${METHOD} https://test.com/v1/${endpoint}"
         );
     }
 

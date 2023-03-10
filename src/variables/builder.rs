@@ -92,6 +92,3 @@ impl VariablesBuilder {
             })
     }
 }
-
-#[cfg(test)]
-mod tests {}

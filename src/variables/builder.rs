@@ -29,8 +29,14 @@ impl VariablesBuilder {
         }
     }
 
-    pub fn extract_keys(&mut self, curl_cmd: &Vec<String>) -> &mut Self {
-        let variable_names: Vec<String> = curl_cmd
+    pub fn set_original_args(&mut self, curl_cmd: &Vec<String>) -> &mut Self {
+        self.original_args = curl_cmd.to_owned();
+        self
+    }
+
+    pub fn extract_keys(&mut self) -> &mut Self {
+        let variable_names: Vec<String> = self
+            .original_args
             .iter()
             .flat_map(|input| {
                 self.variable_mutators

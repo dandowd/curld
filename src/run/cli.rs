@@ -48,12 +48,11 @@ impl RunCli {
             RunCommand::Run(input) => {
                 let RunInput { cmd, id } = input;
                 let mut template = VariablesBuilder::new(variables_mutators);
-                template.extract_keys(cmd);
+                template.set_original_args(cmd).extract_keys();
 
                 let user_values = RunCli::prompt_for_templates(&template.keys);
 
                 let runnable_cmd = template.set_value_map(&user_values).cmd();
-
                 let curl_output = run_with_args(runnable_cmd);
 
                 if let Some(id) = id {

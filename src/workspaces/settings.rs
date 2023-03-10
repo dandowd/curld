@@ -28,7 +28,7 @@ impl<'a> WorkspaceManager<'a> {
     fn new<'b: 'a>(stored_settings: &'b dyn StoredSettings<WorkspaceSettings>) -> Self {
         let workspace_settings = stored_settings
             .get_module(WORKSPACE_MODULE)
-            .unwrap_or_else(Default::default);
+            .unwrap_or_default();
 
         Self {
             stored_settings,

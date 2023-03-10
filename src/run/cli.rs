@@ -1,5 +1,6 @@
 use crate::common::IO;
 use crate::settings::traits::StoredSettings;
+use crate::variables::mutators::VariableMutators;
 use crate::variables::variables_builder::VariablesBuilder;
 use std::collections::HashMap;
 
@@ -36,15 +37,21 @@ pub enum RunCommand {
 pub struct RunCli {}
 
 impl RunCli {
-    pub fn run_match(run_cmd: &RunCommand, stored_settings: &mut dyn StoredSettings<RunSettings>) {
+    pub fn run_match(
+        run_cmd: &RunCommand,
+        stored_settings: &mut dyn StoredSettings<RunSettings>,
+        variables_mutators: &VariableMutators,
+    ) {
         let mut run_settings = RunManager::new(stored_settings);
 
         match run_cmd {
             RunCommand::Run(input) => {
                 let RunInput { cmd, id } = input;
-                let mut template = VariablesBuilder::new(cmd.to_owned());
+                let mut template = VariablesBuilder::new(variables_mutators);
+                template.extract_keys(cmd);
+
                 let user_values = RunCli::prompt_for_templates(&template.keys);
-                template.insert_values(&user_values);
+                template.set_value_map(&user_values);
 
                 let curl_output = run_with_args(template.cmd());
 

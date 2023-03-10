@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::{settings::traits::StoredSettings, variables::builder::VariablesBuilder};
+use crate::{
+    common::CurldCommand, settings::traits::StoredSettings, variables::builder::VariablesBuilder,
+};
 
 pub static RUN_MODULE: &str = "run";
 
@@ -14,21 +16,21 @@ pub struct RunManager<'a> {
 #[derive(Deserialize, Serialize, Default)]
 pub struct RunSettings {
     #[serde(default)]
-    saved: HashMap<String, VariablesBuilder>,
+    saved: HashMap<String, CurldCommand>,
 
     #[serde(default)]
     history_len: usize,
 
     #[serde(default)]
-    history: Vec<VariablesBuilder>,
+    history: Vec<CurldCommand>,
 }
 
 impl<'a> RunManager<'a> {
-    pub fn add_saved(&mut self, id: String, history: VariablesBuilder) {
+    pub fn add_saved(&mut self, id: String, history: CurldCommand) {
         self.settings.saved.insert(id, history);
     }
 
-    pub fn get_saved(&self, id: &String) -> Option<&VariablesBuilder> {
+    pub fn get_saved(&self, id: &String) -> Option<&CurldCommand> {
         self.settings.saved.get(id)
     }
 
@@ -36,29 +38,29 @@ impl<'a> RunManager<'a> {
         self.settings.saved.keys().map(|k| k.to_string()).collect()
     }
 
-    pub fn insert_history(&mut self, cmd: VariablesBuilder) {
+    pub fn insert_history(&mut self, cmd: CurldCommand) {
         self.settings.history.push(cmd);
         self.settings.history.truncate(self.settings.history_len);
 
         self.save_to_parent();
     }
 
-    pub fn get_history_entries(&self) -> Vec<String> {
+    pub fn get_history_entries(&self, mut builder: VariablesBuilder) -> Vec<String> {
         self.settings
             .history
             .iter()
             .enumerate()
-            .map(|(index, builder)| {
+            .map(|(index, curld)| {
                 format!(
                     "{index}| {cmd}",
                     index = index,
-                    cmd = builder.build_string()
+                    cmd = builder.fill(curld).build_string()
                 )
             })
             .collect()
     }
 
-    pub fn get_history_entry(&self, index: usize) -> Option<&VariablesBuilder> {
+    pub fn get_history_entry(&self, index: usize) -> Option<&CurldCommand> {
         self.settings.history.get(index)
     }
 
@@ -88,4 +90,7 @@ impl RunSettings {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    #[test]
+    pub fn should_return_history_list() {}
+}

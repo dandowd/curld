@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 #[cfg(test)]
 use mockall::predicate::*;
 
 #[cfg(test)]
 use mockall::*;
+use serde::{Deserialize, Serialize};
 
 pub struct IO {}
 
@@ -22,4 +25,16 @@ impl IO {
     pub fn output(message: &str) {
         print!("{}", message);
     }
+}
+
+#[derive(Deserialize, Serialize, Clone, Default)]
+pub struct CurldCommand {
+    #[serde(default)]
+    pub keys: Vec<String>,
+
+    #[serde(default)]
+    pub value_map: HashMap<String, String>,
+
+    #[serde(default)]
+    pub original_args: Vec<String>,
 }

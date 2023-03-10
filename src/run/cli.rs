@@ -43,31 +43,33 @@ impl RunCli {
         variables_mutators: &VariableMutators,
     ) {
         let mut run_settings = RunManager::new(stored_settings);
+        let mut builder = VariablesBuilder::new(variables_mutators);
 
         match run_cmd {
             RunCommand::Run(input) => {
                 let RunInput { cmd, id } = input;
-                let mut template = VariablesBuilder::new(variables_mutators);
-                template.set_original_args(cmd).extract_keys();
+                builder.set_original_args(cmd).extract_keys();
 
-                let user_values = RunCli::prompt_for_templates(&template.keys);
+                let user_values = RunCli::prompt_for_templates(&builder.keys);
 
-                let runnable_cmd = template.set_value_map(&user_values).cmd();
+                let runnable_cmd = builder.set_value_map(&user_values).cmd();
                 let curl_output = run_with_args(runnable_cmd);
 
                 if let Some(id) = id {
-                    run_settings.add_saved(id.to_owned(), template.to_owned());
+                    run_settings.add_saved(id.to_owned(), builder.build_curld_cmd());
                 }
 
-                run_settings.insert_history(template);
+                run_settings.insert_history(builder.build_curld_cmd());
                 IO::output(&curl_output)
             }
             RunCommand::RunSaved { id } => {
-                let template = run_settings
+                let curld = run_settings
                     .get_saved(id)
                     .expect("Could not find saved command");
 
-                let curl_output = run_with_args(template.cmd());
+                builder.fill(curld);
+
+                let curl_output = run_with_args(builder.cmd());
 
                 IO::output(&curl_output)
             }
@@ -81,7 +83,7 @@ impl RunCli {
                     let cmd = run_settings.get_history_entry(index);
                     match cmd {
                         Some(args) => {
-                            let output = run_with_args(args.cmd());
+                            let output = run_with_args(builder.fill(args).cmd());
                             IO::output(&output);
                         }
                         None => IO::output(&index.to_string()),
@@ -89,7 +91,9 @@ impl RunCli {
                 }
 
                 if input.list {
-                    for history in run_settings.get_history_entries() {
+                    for history in
+                        run_settings.get_history_entries(VariablesBuilder::new(variables_mutators))
+                    {
                         IO::output(&history);
                     }
                 }

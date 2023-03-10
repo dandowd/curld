@@ -1,21 +1,17 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
+use crate::common::CurldCommand;
 
 use super::mutators::VariableMutators;
 
-#[derive(Deserialize, Serialize, Clone, Default)]
+#[derive(Clone)]
 pub struct VariablesBuilder {
-    #[serde(default)]
     pub keys: Vec<String>,
 
-    #[serde(default)]
     pub value_map: HashMap<String, String>,
 
-    #[serde(default)]
     pub original_args: Vec<String>,
 
-    #[serde(skip_serializing, skip_deserializing)]
     variable_mutators: VariableMutators,
 }
 
@@ -29,9 +25,25 @@ impl VariablesBuilder {
         }
     }
 
+    pub fn fill(&mut self, raw_command: &CurldCommand) -> &mut Self {
+        self.keys = raw_command.keys.to_owned();
+        self.value_map = raw_command.value_map.to_owned();
+        self.original_args = raw_command.original_args.to_owned();
+
+        self
+    }
+
     pub fn set_original_args(&mut self, curl_cmd: &Vec<String>) -> &mut Self {
         self.original_args = curl_cmd.to_owned();
         self
+    }
+
+    pub fn build_curld_cmd(&self) -> CurldCommand {
+        CurldCommand {
+            keys: self.keys.to_owned(),
+            value_map: self.value_map.to_owned(),
+            original_args: self.original_args.to_owned(),
+        }
     }
 
     pub fn extract_keys(&mut self) -> &mut Self {

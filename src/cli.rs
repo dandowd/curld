@@ -1,9 +1,9 @@
 use clap::Parser;
 
 use crate::{
+    config::Config,
     run::cli::{RunCli, RunCommand},
     settings::{file::FileStorage, global_settings::GlobalSettings},
-    variables::mutators::VariableMutators,
 };
 
 #[derive(Parser, Debug)]
@@ -22,7 +22,7 @@ pub fn run() {
     let input = Args::parse();
     let mut global_settings = GlobalSettings::new(FileStorage::new(None));
 
-    let variable_mutators = VariableMutators::new();
+    let variable_mutators = Config::get_mutators();
 
     match &input.command {
         Commands::Run(variants) => {

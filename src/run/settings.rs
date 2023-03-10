@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, default::Default};
 
-use crate::{settings::traits::StoredSettings, variables::variables_builder::VariablesBuilder};
+use crate::{settings::traits::StoredSettings, variables::builder::VariablesBuilder};
 
 pub static RUN_MODULE: &str = "run";
 

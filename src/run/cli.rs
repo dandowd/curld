@@ -1,7 +1,7 @@
 use crate::common::IO;
 use crate::settings::traits::StoredSettings;
+use crate::variables::builder::VariablesBuilder;
 use crate::variables::mutators::VariableMutators;
-use crate::variables::variables_builder::VariablesBuilder;
 use std::collections::HashMap;
 
 use super::settings::RunManager;
@@ -48,12 +48,12 @@ impl RunCli {
             RunCommand::Run(input) => {
                 let RunInput { cmd, id } = input;
                 let mut template = VariablesBuilder::new(variables_mutators);
-                template.extract_keys(cmd);
 
                 let user_values = RunCli::prompt_for_templates(&template.keys);
-                template.set_value_map(&user_values);
 
-                let curl_output = run_with_args(template.cmd());
+                let runnable_cmd = template.extract_keys(cmd).set_value_map(&user_values).cmd();
+
+                let curl_output = run_with_args(runnable_cmd);
 
                 if let Some(id) = id {
                     run_settings.add_saved(id.to_owned(), template.to_owned());

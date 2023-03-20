@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::settings::traits::StoredSettings;
+use crate::{common::CurldCommand, settings::traits::StoredSettings};
 
 pub static WORKSPACE_MODULE: &str = "workspace";
 
@@ -20,8 +20,9 @@ pub struct WorkspaceSettings {
 
 #[derive(Deserialize, Serialize, Default)]
 pub struct Workspace {
-    pub base_url: String,
-    pub headers: Vec<String>,
+    pub name: String,
+    pub variables: HashMap<String, String>,
+    pub commands: Vec<CurldCommand>,
 }
 
 impl<'a> WorkspaceManager<'a> {

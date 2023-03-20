@@ -118,3 +118,6 @@ impl RunCli {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {}

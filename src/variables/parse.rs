@@ -1,9 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 
 pub fn extract_variable_names(templated: &str, opening: &str, closing: &str) -> Vec<String> {
     let opening_len = opening.len();
     // Use a HashSet to ensure there are no duplicates
-    let mut names: HashSet<String> = HashSet::new();
+    let mut names: BTreeSet<String> = BTreeSet::new();
     let mut alt_variabled = templated.to_owned();
 
     while let Some(start_index) = alt_variabled.find(opening) {
@@ -77,9 +78,8 @@ mod tests {
     fn extract_variable_names_should_parse() {
         let test_str = "-X ${method} https://${base_url}/v1/${endpoint}";
 
-        let mut names = extract_variable_names(&test_str, VAR_OPEN, VAR_CLOSE);
-        // Order the vector because the HashSet order is non-deterministic
-        names.sort();
+        let names = extract_variable_names(&test_str, VAR_OPEN, VAR_CLOSE);
+
         assert_eq!(names.get(0).unwrap(), "base_url");
         assert_eq!(names.get(1).unwrap(), "endpoint");
         assert_eq!(names.get(2).unwrap(), "method");

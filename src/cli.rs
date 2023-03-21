@@ -1,13 +1,10 @@
 use clap::Parser;
 
 use crate::{
-    run::{
-        cli::{RunCli, RunCommand},
-        mutators::RunMutators,
-    },
+    run::cli::{RunCli, RunCommand},
     settings::{file::FileStorage, global_settings::GlobalSettings},
-    variables::mutators::VariableMutators,
-    workspaces::mutators::WorkspaceMutators,
+    variables::builder::VariablesBuilder,
+    workspaces::settings::WorkspaceManager,
 };
 
 #[derive(Parser, Debug)]
@@ -25,17 +22,17 @@ pub enum Commands {
 pub fn run() {
     let input = Args::parse();
     let mut global_settings = GlobalSettings::new(FileStorage::new(None));
-    let mut variable_mutators = VariableMutators::new();
+    let mut variable_builder = VariablesBuilder::new();
 
-    variable_mutators.register_inserters(WorkspaceMutators::get_inserters());
-    variable_mutators.register_extractors(WorkspaceMutators::get_extractors());
+    let workspace_settings = WorkspaceManager::new(&mut global_settings);
+    let workspace_mutator = workspace_settings.get_workspace_mutator();
 
-    variable_mutators.register_inserters(RunMutators::get_inserters());
-    variable_mutators.register_extractors(RunMutators::get_extractors());
+    variable_builder.add_extractor(&workspace_mutator);
+    variable_builder.add_inserter(&workspace_mutator);
 
     match &input.command {
         Commands::Run(variants) => {
-            RunCli::run_match(variants, &mut global_settings, &variable_mutators)
+            RunCli::run_match(variants, &mut global_settings, &mut variable_builder)
         }
     }
 

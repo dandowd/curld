@@ -45,7 +45,7 @@ impl<'a> RunManager<'a> {
         self.save_to_parent();
     }
 
-    pub fn get_history_entries(&self, mut builder: VariablesBuilder) -> Vec<String> {
+    pub fn get_history_entries(&self, builder: &VariablesBuilder) -> Vec<String> {
         self.settings
             .history
             .iter()
@@ -54,7 +54,7 @@ impl<'a> RunManager<'a> {
                 format!(
                     "{index}| {cmd}",
                     index = index,
-                    cmd = builder.fill(curld).build_string()
+                    cmd = builder.to_string(curld)
                 )
             })
             .collect()

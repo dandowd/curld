@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{common::CurldCommand, settings::traits::StoredSettings};
 
+use super::mutators::WorkspaceMutator;
+
 pub static WORKSPACE_MODULE: &str = "workspace";
 
-pub struct WorkspaceManager<'a> {
-    stored_settings: &'a dyn StoredSettings<WorkspaceSettings>,
-
+pub struct WorkspaceManager {
     workspace_settings: WorkspaceSettings,
 }
 
@@ -18,34 +18,45 @@ pub struct WorkspaceSettings {
     workspaces: HashMap<String, Workspace>,
 }
 
-#[derive(Deserialize, Serialize, Default)]
+#[derive(Deserialize, Serialize, Default, Clone)]
 pub struct Workspace {
     pub name: String,
     pub variables: HashMap<String, String>,
     pub commands: Vec<CurldCommand>,
 }
 
-impl<'a> WorkspaceManager<'a> {
-    fn new<'b: 'a>(stored_settings: &'b dyn StoredSettings<WorkspaceSettings>) -> Self {
+impl WorkspaceManager {
+    pub fn new(stored_settings: &dyn StoredSettings<WorkspaceSettings>) -> Self {
         let workspace_settings = stored_settings
             .get_module(WORKSPACE_MODULE)
             .unwrap_or_default();
 
-        Self {
-            stored_settings,
-            workspace_settings,
+        Self { workspace_settings }
+    }
+
+    pub fn change_workspace(&mut self, workspace_name: &str) {
+        if let None = self.workspace_settings.workspaces.get(workspace_name) {
+            self.workspace_settings
+                .workspaces
+                .insert(workspace_name.to_string(), Workspace::default());
         }
+
+        self.workspace_settings.current_workspace = workspace_name.to_string();
+    }
+
+    pub fn get_current_workspace(&self) -> &Workspace {
+        self.workspace_settings
+            .workspaces
+            .get(&self.workspace_settings.current_workspace)
+            .expect(
+                "No workspace found, try changing to the workspace again to create a default one.",
+            )
+    }
+
+    pub fn get_workspace_mutator(&self) -> WorkspaceMutator {
+        WorkspaceMutator::new(self.get_current_workspace())
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::settings::traits::MockStoredSettings;
-
-    use super::*;
-
-    fn should_use_workspace_settings() {
-        let stored_settings = MockStoredSettings::new();
-        let manager = WorkspaceManager::new(&stored_settings);
-    }
-}
+mod tests {}

@@ -2,25 +2,31 @@ use std::collections::HashMap;
 
 use crate::variables::{parse, Extractor, Inserter};
 
+use super::settings::Workspace;
+
 static OPENING: &str = "$w{";
 static CLOSING: &str = "}";
 
-pub struct WorkspaceMutators {}
+pub struct WorkspaceMutator {
+    value_map: HashMap<String, String>,
+}
 
-impl WorkspaceMutators {
-    pub fn get_extractors() -> Vec<Extractor> {
-        vec![Self::extractor]
+impl WorkspaceMutator {
+    pub fn new(workspace: &Workspace) -> WorkspaceMutator {
+        WorkspaceMutator {
+            value_map: workspace.variables.clone(),
+        }
     }
+}
 
-    pub fn get_inserters() -> Vec<Inserter> {
-        vec![Self::inserter]
+impl Extractor for WorkspaceMutator {
+    fn extract(&self, template: &str) -> Vec<String> {
+        parse::extract_variable_names(template, OPENING, CLOSING)
     }
+}
 
-    fn extractor(templated: &String) -> Vec<String> {
-        parse::extract_variable_names(templated, OPENING, CLOSING)
-    }
-
-    fn inserter(templated: &String, value_map: &HashMap<String, String>) -> String {
-        parse::insert_variable_values(templated, value_map, OPENING, CLOSING)
+impl Inserter for WorkspaceMutator {
+    fn insert(&self, template: &str, _value_map: &HashMap<String, String>) -> String {
+        parse::insert_variable_values(template, &self.value_map, OPENING, CLOSING)
     }
 }

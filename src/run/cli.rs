@@ -1,7 +1,7 @@
+use crate::common::CurldCommand;
 use crate::common::IO;
 use crate::settings::traits::StoredSettings;
 use crate::variables::builder::VariablesBuilder;
-use crate::variables::mutators::VariableMutators;
 use std::collections::HashMap;
 
 use super::settings::RunManager;
@@ -14,7 +14,7 @@ pub struct RunInput {
     pub id: Option<String>,
 
     #[arg(raw = true)]
-    pub cmd: Vec<String>,
+    pub user_args: Vec<String>,
 }
 
 #[derive(clap::Args, Debug)]
@@ -40,36 +40,37 @@ impl RunCli {
     pub fn run_match(
         run_cmd: &RunCommand,
         stored_settings: &mut dyn StoredSettings<RunSettings>,
-        variables_mutators: &VariableMutators,
+        variables_builder: &mut VariablesBuilder,
     ) {
         let mut run_settings = RunManager::new(stored_settings);
-        let mut builder = VariablesBuilder::new(variables_mutators);
 
         match run_cmd {
             RunCommand::Run(input) => {
-                let RunInput { cmd, id } = input;
-                builder.set_original_args(cmd).extract_keys();
+                let RunInput { user_args, id } = input;
 
-                let user_values = RunCli::prompt_for_templates(&builder.keys);
+                let extracted_keys = variables_builder.extract_keys(user_args);
+                let user_values = RunCli::prompt_for_templates(&extracted_keys);
 
-                let runnable_cmd = builder.set_value_map(&user_values).cmd();
+                let curld_cmd = CurldCommand::new(user_args.to_owned(), user_values);
+
+                let runnable_cmd = variables_builder.cmd(&curld_cmd);
                 let curl_output = run_with_args(runnable_cmd);
 
                 if let Some(id) = id {
-                    run_settings.add_saved(id.to_owned(), builder.build_curld_cmd());
+                    run_settings.add_saved(id.to_owned(), curld_cmd.to_owned());
                 }
 
-                run_settings.insert_history(builder.build_curld_cmd());
+                run_settings.insert_history(curld_cmd);
                 IO::output(&curl_output)
             }
             RunCommand::RunSaved { id } => {
-                let curld = run_settings
+                let curld_cmd = run_settings
                     .get_saved(id)
                     .expect("Could not find saved command");
 
-                builder.fill(curld);
+                variables_builder.extract_keys(&curld_cmd.user_args);
 
-                let curl_output = run_with_args(builder.cmd());
+                let curl_output = run_with_args(variables_builder.cmd(curld_cmd));
 
                 IO::output(&curl_output)
             }
@@ -83,7 +84,8 @@ impl RunCli {
                     let cmd = run_settings.get_history_entry(index);
                     match cmd {
                         Some(args) => {
-                            let output = run_with_args(builder.fill(args).cmd());
+                            variables_builder.extract_keys(&args.user_args);
+                            let output = run_with_args(variables_builder.cmd(args));
                             IO::output(&output);
                         }
                         None => IO::output(&index.to_string()),
@@ -91,9 +93,7 @@ impl RunCli {
                 }
 
                 if input.list {
-                    for history in
-                        run_settings.get_history_entries(VariablesBuilder::new(variables_mutators))
-                    {
+                    for history in run_settings.get_history_entries(variables_builder) {
                         IO::output(&history);
                     }
                 }

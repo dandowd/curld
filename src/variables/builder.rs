@@ -1,94 +1,70 @@
-use std::collections::HashMap;
-
 use crate::common::CurldCommand;
 
-use super::mutators::VariableMutators;
+use super::{Extractor, Inserter};
 
 #[derive(Clone)]
-pub struct VariablesBuilder {
+pub struct VariablesBuilder<'a> {
     pub keys: Vec<String>,
 
-    pub value_map: HashMap<String, String>,
-
-    pub original_args: Vec<String>,
-
-    variable_mutators: VariableMutators,
+    inserters: Vec<&'a dyn Inserter>,
+    extractors: Vec<&'a dyn Extractor>,
 }
 
-impl VariablesBuilder {
-    pub fn new(mutators: &VariableMutators) -> Self {
+impl<'a> VariablesBuilder<'a> {
+    pub fn new() -> Self {
         Self {
             keys: Vec::new(),
-            original_args: Vec::new(),
-            value_map: HashMap::new(),
-            variable_mutators: mutators.to_owned(),
+            inserters: Vec::new(),
+            extractors: Vec::new(),
         }
     }
 
-    pub fn fill(&mut self, raw_command: &CurldCommand) -> &mut Self {
-        self.keys = raw_command.keys.to_owned();
-        self.value_map = raw_command.value_map.to_owned();
-        self.original_args = raw_command.original_args.to_owned();
-
-        self
-    }
-
-    pub fn set_original_args(&mut self, curl_cmd: &Vec<String>) -> &mut Self {
-        self.original_args = curl_cmd.to_owned();
-        self
-    }
-
-    pub fn build_curld_cmd(&self) -> CurldCommand {
-        CurldCommand {
-            keys: self.keys.to_owned(),
-            value_map: self.value_map.to_owned(),
-            original_args: self.original_args.to_owned(),
-        }
-    }
-
-    pub fn extract_keys(&mut self) -> &mut Self {
-        let variable_names: Vec<String> = self
-            .original_args
+    pub fn extract_keys(&mut self, user_args: &Vec<String>) -> Vec<String> {
+        let keys = user_args
             .iter()
             .flat_map(|input| {
-                self.variable_mutators
-                    .extractors
+                self.extractors
                     .iter()
-                    .flat_map(|func| func(input))
+                    .flat_map(|extractor| extractor.extract(input))
                     .collect::<Vec<String>>()
             })
             .collect();
 
-        self.keys.extend(variable_names);
-        self
-    }
-    pub fn set_value_map(&mut self, value_map: &HashMap<String, String>) -> &mut Self {
-        self.value_map = value_map.to_owned();
-        self
+        self.keys = keys;
+        self.keys.clone()
     }
 
-    pub fn cmd(&self) -> Vec<String> {
+    pub fn cmd(&self, curld: &CurldCommand) -> Vec<String> {
         if self.keys.is_empty() {
-            return self.original_args.to_owned();
+            return curld.user_args.to_owned();
         }
 
-        self.original_args
+        curld
+            .user_args
             .iter()
             .map(|input| {
-                self.variable_mutators
-                    .inserters
+                self.inserters
                     .iter()
-                    .fold(input.to_owned(), |acc, func| func(&acc, &self.value_map))
+                    .fold(input.to_owned(), |acc, inserter| {
+                        inserter.insert(&acc, &curld.value_map)
+                    })
             })
             .collect()
     }
 
-    pub fn build_string(&self) -> String {
-        self.variable_mutators
-            .inserters
+    pub fn to_string(&self, curld: &CurldCommand) -> String {
+        self.inserters
             .iter()
-            .fold(self.original_args.join(" "), |acc, func| {
-                func(&acc, &self.value_map)
+            .fold(curld.user_args.join(" "), |acc, inserter| {
+                inserter.insert(&acc, &curld.value_map)
             })
+    }
+
+    pub fn add_inserter(&mut self, inserter: &'a dyn Inserter) {
+        self.inserters.push(inserter);
+    }
+
+    pub fn add_extractor(&mut self, extractor: &'a dyn Extractor) {
+        self.extractors.push(extractor);
     }
 }

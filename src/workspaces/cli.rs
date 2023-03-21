@@ -17,6 +17,4 @@ impl WorkspacesCli {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-}
+mod tests {}

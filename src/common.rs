@@ -30,11 +30,17 @@ impl IO {
 #[derive(Deserialize, Serialize, Clone, Default)]
 pub struct CurldCommand {
     #[serde(default)]
-    pub keys: Vec<String>,
-
-    #[serde(default)]
     pub value_map: HashMap<String, String>,
 
     #[serde(default)]
-    pub original_args: Vec<String>,
+    pub user_args: Vec<String>,
+}
+
+impl CurldCommand {
+    pub fn new(user_args: Vec<String>, value_map: HashMap<String, String>) -> Self {
+        Self {
+            value_map,
+            user_args,
+        }
+    }
 }

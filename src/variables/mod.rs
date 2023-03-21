@@ -15,6 +15,3 @@ pub trait Inserter {
 pub trait Extractor {
     fn extract(&self, template: &str) -> Vec<String>;
 }
-
-#[cfg(test)]
-mod tests {}

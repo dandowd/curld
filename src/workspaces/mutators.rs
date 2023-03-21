@@ -30,3 +30,36 @@ impl Inserter for WorkspaceMutator {
         parse::insert_variable_values(template, &self.value_map, OPENING, CLOSING)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_extract_keys() {
+        let workspace = Workspace {
+            name: "test".to_owned(),
+            variables: HashMap::new(),
+            commands: Vec::new(),
+        };
+
+        let mutator = WorkspaceMutator::new(&workspace);
+        let keys = mutator.extract("$w{key} $w{key2}");
+
+        assert_eq!(keys, vec!["key".to_owned(), "key2".to_owned()]);
+    }
+
+    #[test]
+    fn it_should_not_extract_other_templates() {
+        let workspace = Workspace {
+            name: "test".to_owned(),
+            variables: HashMap::new(),
+            commands: Vec::new(),
+        };
+
+        let mutator = WorkspaceMutator::new(&workspace);
+        let keys = mutator.extract("$w{key} ${key2}");
+
+        assert_eq!(keys, vec!["key".to_owned()]);
+    }
+}

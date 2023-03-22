@@ -1,11 +1,12 @@
 use super::mutators::WorkspaceMutator;
 use crate::{common::CurldCommand, settings::traits::StoredSettings};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap};
 
 pub static WORKSPACE_MODULE: &str = "workspace";
 
-pub struct WorkspaceManager {
+pub struct WorkspacesManager<'a> {
+    stored_settings: &'a RefCell<dyn StoredSettings<WorkspaceSettings>>,
     workspace_settings: WorkspaceSettings,
 }
 
@@ -22,9 +23,10 @@ pub struct Workspace {
     pub commands: Vec<CurldCommand>,
 }
 
-impl WorkspaceManager {
-    pub fn new(stored_settings: &dyn StoredSettings<WorkspaceSettings>) -> Self {
+impl<'a> WorkspacesManager<'a> {
+    pub fn new(stored_settings: &'a RefCell<dyn StoredSettings<WorkspaceSettings>>) -> Self {
         let mut workspace_settings = stored_settings
+            .borrow_mut()
             .get_module(WORKSPACE_MODULE)
             .unwrap_or_default();
 
@@ -43,7 +45,14 @@ impl WorkspaceManager {
             workspace_settings.current_workspace = String::from(&default_name);
         }
 
-        Self { workspace_settings }
+        stored_settings
+            .borrow_mut()
+            .insert_module(WORKSPACE_MODULE, &workspace_settings);
+
+        Self {
+            stored_settings,
+            workspace_settings,
+        }
     }
 
     pub fn change_workspace(&mut self, workspace_name: &str) {
@@ -59,6 +68,10 @@ impl WorkspaceManager {
         }
 
         self.workspace_settings.current_workspace = workspace_name.to_string();
+
+        self.stored_settings
+            .borrow_mut()
+            .insert_module(WORKSPACE_MODULE, &self.workspace_settings);
     }
 
     pub fn get_current_workspace(&self) -> &Workspace {
@@ -68,6 +81,14 @@ impl WorkspaceManager {
             .expect(
                 "No workspace found, try changing to the workspace again to create a default one.",
             )
+    }
+
+    pub fn get_workspaces_names(&self) -> Vec<String> {
+        self.workspace_settings
+            .workspaces
+            .keys()
+            .map(|key| key.to_string())
+            .collect()
     }
 
     pub fn get_workspace_mutator(&self) -> WorkspaceMutator {
@@ -81,15 +102,39 @@ mod tests {
     use crate::settings::traits::MockStoredSettings;
 
     #[test]
-    fn it_should_return_workspace_even_when_it_does_not_exist() {
-        let mut stored_settings = MockStoredSettings::new();
-        stored_settings.expect_get_module().returning(|_| None);
+    fn change_workspace_should_return_workspace_even_when_it_does_not_exist() {
+        let mut stored_settings = RefCell::new(MockStoredSettings::new());
+        stored_settings
+            .borrow_mut()
+            .expect_get_module()
+            .returning(|_| None);
+        stored_settings
+            .borrow_mut()
+            .expect_insert_module()
+            .returning(|_, _| ());
 
-        let mut manager = WorkspaceManager::new(&stored_settings);
+        let mut manager = WorkspacesManager::new(&mut stored_settings);
         manager.change_workspace("test");
 
         let current_workspace = manager.get_current_workspace();
 
         assert_eq!(current_workspace.name, "test");
+    }
+
+    #[test]
+    fn new_should_create_default_workspace_when_none_exist() {
+        let mut stored_settings = RefCell::new(MockStoredSettings::new());
+        stored_settings
+            .borrow_mut()
+            .expect_get_module()
+            .returning(|_| None);
+        stored_settings
+            .borrow_mut()
+            .expect_insert_module()
+            .returning(|_, _| ());
+
+        let manager = WorkspacesManager::new(&mut stored_settings);
+
+        assert_eq!(manager.workspace_settings.workspaces.len(), 1);
     }
 }

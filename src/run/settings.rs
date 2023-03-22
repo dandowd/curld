@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, default::Default};
+use std::{cell::RefCell, collections::HashMap, default::Default};
 
 use crate::{
     common::CurldCommand, settings::traits::StoredSettings, variables::builder::VariablesBuilder,
@@ -10,7 +10,7 @@ use super::mutators::RunMutators;
 pub static RUN_MODULE: &str = "run";
 
 pub struct RunManager<'a> {
-    parent: &'a mut dyn StoredSettings<RunSettings>,
+    parent: &'a RefCell<dyn StoredSettings<RunSettings>>,
 
     settings: RunSettings,
 }
@@ -67,15 +67,18 @@ impl<'a> RunManager<'a> {
     }
 
     fn save_to_parent(&mut self) {
-        self.parent.insert_module(RUN_MODULE, &self.settings);
+        self.parent
+            .borrow_mut()
+            .insert_module(RUN_MODULE, &self.settings);
     }
 
     pub fn get_mutators(&self) -> RunMutators {
         RunMutators {}
     }
 
-    pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<RunSettings>) -> Self {
+    pub fn new<'b: 'a>(stored_settings: &'b RefCell<dyn StoredSettings<RunSettings>>) -> Self {
         let settings: RunSettings = stored_settings
+            .borrow_mut()
             .get_module(RUN_MODULE)
             .unwrap_or_else(RunSettings::default);
 

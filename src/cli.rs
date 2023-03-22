@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use clap::Parser;
 
 use crate::{
@@ -7,7 +9,10 @@ use crate::{
     },
     settings::{file::FileStorage, global_settings::GlobalSettings},
     variables::builder::VariablesBuilder,
-    workspaces::settings::WorkspaceManager,
+    workspaces::{
+        cli::{WorkspacesCli, WorkspacesCommand},
+        settings::WorkspacesManager,
+    },
 };
 
 #[derive(Parser, Debug)]
@@ -20,20 +25,23 @@ pub struct Args {
 pub enum Commands {
     #[command(flatten)]
     Run(RunCommand),
+
+    #[command(subcommand)]
+    Workspaces(WorkspacesCommand),
 }
 
 pub fn run() {
     let input = Args::parse();
-    let mut global_settings = GlobalSettings::new(FileStorage::new(None));
+    let global_settings = RefCell::new(GlobalSettings::new(FileStorage::new(None)));
     let mut variable_builder = VariablesBuilder::new();
 
-    let workspace_settings = WorkspaceManager::new(&mut global_settings);
+    let mut workspace_settings = WorkspacesManager::new(&global_settings);
     let workspace_mutator = workspace_settings.get_workspace_mutator();
 
     variable_builder.add_extractor(&workspace_mutator);
     variable_builder.add_inserter(&workspace_mutator);
 
-    let mut run_settings = RunManager::new(&mut global_settings);
+    let mut run_settings = RunManager::new(&global_settings);
     let run_mutators = run_settings.get_mutators();
 
     variable_builder.add_extractor(&run_mutators);
@@ -43,7 +51,10 @@ pub fn run() {
         Commands::Run(variants) => {
             RunCli::run_match(variants, &mut run_settings, &mut variable_builder)
         }
+        Commands::Workspaces(variants) => {
+            WorkspacesCli::run_match(variants, &mut workspace_settings)
+        }
     }
 
-    global_settings.write();
+    global_settings.borrow_mut().write();
 }

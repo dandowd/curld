@@ -1,7 +1,10 @@
 use clap::Parser;
 
 use crate::{
-    run::cli::{RunCli, RunCommand},
+    run::{
+        cli::{RunCli, RunCommand},
+        settings::RunManager,
+    },
     settings::{file::FileStorage, global_settings::GlobalSettings},
     variables::builder::VariablesBuilder,
     workspaces::settings::WorkspaceManager,
@@ -30,9 +33,15 @@ pub fn run() {
     variable_builder.add_extractor(&workspace_mutator);
     variable_builder.add_inserter(&workspace_mutator);
 
+    let mut run_settings = RunManager::new(&mut global_settings);
+    let run_mutators = run_settings.get_mutators();
+
+    variable_builder.add_extractor(&run_mutators);
+    variable_builder.add_inserter(&run_mutators);
+
     match &input.command {
         Commands::Run(variants) => {
-            RunCli::run_match(variants, &mut global_settings, &mut variable_builder)
+            RunCli::run_match(variants, &mut run_settings, &mut variable_builder)
         }
     }
 

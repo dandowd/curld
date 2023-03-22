@@ -1,11 +1,9 @@
 use crate::common::CurldCommand;
 use crate::common::IO;
-use crate::settings::traits::StoredSettings;
 use crate::variables::builder::VariablesBuilder;
 use std::collections::HashMap;
 
 use super::settings::RunManager;
-use super::settings::RunSettings;
 use super::utils::run_with_args;
 
 #[derive(clap::Args, Debug)]
@@ -39,11 +37,9 @@ pub struct RunCli {}
 impl RunCli {
     pub fn run_match(
         run_cmd: &RunCommand,
-        stored_settings: &mut dyn StoredSettings<RunSettings>,
+        run_settings: &mut RunManager,
         variables_builder: &mut VariablesBuilder,
     ) {
-        let mut run_settings = RunManager::new(stored_settings);
-
         match run_cmd {
             RunCommand::Run(input) => {
                 let RunInput { user_args, id } = input;

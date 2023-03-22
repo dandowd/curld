@@ -5,6 +5,8 @@ use crate::{
     common::CurldCommand, settings::traits::StoredSettings, variables::builder::VariablesBuilder,
 };
 
+use super::mutators::RunMutators;
+
 pub static RUN_MODULE: &str = "run";
 
 pub struct RunManager<'a> {
@@ -66,6 +68,10 @@ impl<'a> RunManager<'a> {
 
     fn save_to_parent(&mut self) {
         self.parent.insert_module(RUN_MODULE, &self.settings);
+    }
+
+    pub fn get_mutators(&self) -> RunMutators {
+        RunMutators {}
     }
 
     pub fn new<'b: 'a>(stored_settings: &'b mut dyn StoredSettings<RunSettings>) -> Self {

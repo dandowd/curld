@@ -38,7 +38,6 @@ pub fn run() {
     let mut workspace_settings = WorkspacesManager::new(&global_settings);
     let workspace_mutator = workspace_settings.get_workspace_mutator();
 
-    variable_builder.add_extractor(&workspace_mutator);
     variable_builder.add_inserter(&workspace_mutator);
 
     let mut run_settings = RunManager::new(&global_settings);

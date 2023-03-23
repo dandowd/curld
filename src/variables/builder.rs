@@ -35,10 +35,6 @@ impl<'a> VariablesBuilder<'a> {
     }
 
     pub fn cmd(&self, curld: &CurldCommand) -> Vec<String> {
-        if self.keys.is_empty() {
-            return curld.user_args.to_owned();
-        }
-
         curld
             .user_args
             .iter()

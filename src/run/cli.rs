@@ -11,6 +11,7 @@ pub struct RunInput {
     #[arg(short, long)]
     pub id: Option<String>,
 
+    // This is being used so clap doesn't try to interpret the curl args
     #[arg(raw = true)]
     pub user_args: Vec<String>,
 }
@@ -32,9 +33,7 @@ pub enum RunCommand {
     List,
 }
 
-pub struct RunCli {}
-
-impl RunCli {
+impl RunCommand {
     pub fn run_match(
         run_cmd: &RunCommand,
         run_settings: &mut RunManager,
@@ -45,7 +44,8 @@ impl RunCli {
                 let RunInput { user_args, id } = input;
 
                 let extracted_keys = variables_builder.extract_keys(user_args);
-                let user_values = RunCli::prompt_for_templates(&extracted_keys);
+
+                let user_values = RunCommand::prompt_for_templates(&extracted_keys);
 
                 let curld_cmd = CurldCommand::new(user_args.to_owned(), user_values);
 
@@ -80,7 +80,6 @@ impl RunCli {
                     let cmd = run_settings.get_history_entry(index);
                     match cmd {
                         Some(args) => {
-                            variables_builder.extract_keys(&args.user_args);
                             let output = run_with_args(variables_builder.cmd(args));
                             IO::output(&output);
                         }
@@ -99,7 +98,7 @@ impl RunCli {
 
     fn prompt_for_templates(template_keys: &Vec<String>) -> HashMap<String, String> {
         let mut template_map: HashMap<String, String> = HashMap::new();
-        RunCli::loop_prompt(template_keys, &mut template_map);
+        RunCommand::loop_prompt(template_keys, &mut template_map);
 
         template_map
     }

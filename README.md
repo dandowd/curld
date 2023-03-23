@@ -17,4 +17,10 @@ The syntax is `\${var}` or `'${var}'` (note that the $ must either be escaped or
 
 Templates of the same name will only be prompted for once and filled in where appropriate.
 
-`curld run -- -X '${POST}' httpbin.org/post -H "accept: application/json" -d '{"productId": 123456, "quantity": ${quantity}, "on_hand": ${quantity}}'`
+`curld run -- -X POST httpbin.org/post -H "accept: application/json" -d '{"productId": 123456, "quantity": ${quantity}, "on_hand": ${quantity}}'`
+
+### Workspaces
+Workspaces are a way to store variables that can be used inside every request, without having to enter them each time.
+Variables for a workspace are denoted with `$w{var}`
+
+`curld run -- -X POST '$w{base_url}/post'`

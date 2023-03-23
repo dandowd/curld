@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
-use std::{cell::RefCell, collections::HashMap, default::Default};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, VecDeque},
+    default::Default,
+};
 
 use crate::{
     common::CurldCommand, settings::traits::StoredSettings, variables::builder::VariablesBuilder,
@@ -24,7 +28,7 @@ pub struct RunSettings {
     history_len: usize,
 
     #[serde(default)]
-    history: Vec<CurldCommand>,
+    history: VecDeque<CurldCommand>,
 }
 
 impl<'a> RunManager<'a> {
@@ -41,7 +45,7 @@ impl<'a> RunManager<'a> {
     }
 
     pub fn insert_history(&mut self, cmd: CurldCommand) {
-        self.settings.history.push(cmd);
+        self.settings.history.push_front(cmd);
         self.settings.history.truncate(self.settings.history_len);
 
         self.save_to_parent();

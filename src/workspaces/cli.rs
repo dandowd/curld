@@ -7,12 +7,11 @@ pub enum WorkspacesCommand {
     List,
     Create { name: String },
     Use { name: String },
+    AddVariable { key: String, value: String },
 }
 
-pub struct WorkspacesCli {}
-
-impl WorkspacesCli {
-    pub fn run_match(command: &WorkspacesCommand, workspaces_manager: &mut WorkspacesManager) {
+impl WorkspacesCommand {
+    pub fn cli_match(command: &WorkspacesCommand, workspaces_manager: &mut WorkspacesManager) {
         match command {
             WorkspacesCommand::List => {
                 let list = workspaces_manager.get_workspaces_names();
@@ -25,6 +24,10 @@ impl WorkspacesCli {
             WorkspacesCommand::Use { name } => {
                 workspaces_manager.change_workspace(&name);
                 IO::output(&format!("Workspace changed to {}", name));
+            }
+            WorkspacesCommand::AddVariable { key, value } => {
+                workspaces_manager.set_variable(key, value);
+                IO::output(&format!("Variable added: {}={}", key, value));
             }
         }
     }

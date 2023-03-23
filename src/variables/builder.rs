@@ -4,8 +4,6 @@ use super::{Extractor, Inserter};
 
 #[derive(Clone)]
 pub struct VariablesBuilder<'a> {
-    pub keys: Vec<String>,
-
     inserters: Vec<&'a dyn Inserter>,
     extractors: Vec<&'a dyn Extractor>,
 }
@@ -13,14 +11,13 @@ pub struct VariablesBuilder<'a> {
 impl<'a> VariablesBuilder<'a> {
     pub fn new() -> Self {
         Self {
-            keys: Vec::new(),
             inserters: Vec::new(),
             extractors: Vec::new(),
         }
     }
 
     pub fn extract_keys(&mut self, user_args: &Vec<String>) -> Vec<String> {
-        let keys = user_args
+        user_args
             .iter()
             .flat_map(|input| {
                 self.extractors
@@ -28,10 +25,7 @@ impl<'a> VariablesBuilder<'a> {
                     .flat_map(|extractor| extractor.extract(input))
                     .collect::<Vec<String>>()
             })
-            .collect();
-
-        self.keys = keys;
-        self.keys.clone()
+            .collect()
     }
 
     pub fn cmd(&self, curld: &CurldCommand) -> Vec<String> {
@@ -91,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn test_extract_keys() {
+    fn extract_keys_should_get_var_name() {
         let mock_extractor = setup_extractor(2);
         let mut builder = VariablesBuilder::new();
         builder.add_extractor(&mock_extractor);
@@ -103,20 +97,16 @@ mod tests {
     }
 
     #[test]
-    fn cmd_should_insert_values_after_extract() {
+    fn cmd_should_insert_values() {
         let mock_inserter = setup_inserter(2);
-        let mock_extractor = setup_extractor(2);
 
         let mut builder = VariablesBuilder::new();
         builder.add_inserter(&mock_inserter);
-        builder.add_extractor(&mock_extractor);
 
         let curld = CurldCommand {
             user_args: vec!["{{key}}".to_string(), "{{value}}".to_string()],
             value_map: HashMap::new(),
         };
-
-        builder.extract_keys(&curld.user_args);
 
         let cmd = builder.cmd(&curld);
 

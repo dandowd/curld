@@ -3,16 +3,10 @@ use std::cell::RefCell;
 use clap::Parser;
 
 use crate::{
-    run::{
-        cli::{RunCli, RunCommand},
-        settings::RunManager,
-    },
+    run::{cli::RunCommand, settings::RunManager},
     settings::{file::FileStorage, global_settings::GlobalSettings},
     variables::builder::VariablesBuilder,
-    workspaces::{
-        cli::{WorkspacesCli, WorkspacesCommand},
-        settings::WorkspacesManager,
-    },
+    workspaces::{cli::WorkspacesCommand, settings::WorkspacesManager},
 };
 
 #[derive(Parser, Debug)]
@@ -48,10 +42,10 @@ pub fn run() {
 
     match &input.command {
         Commands::Run(variants) => {
-            RunCli::run_match(variants, &mut run_settings, &mut variable_builder)
+            RunCommand::run_match(variants, &mut run_settings, &mut variable_builder)
         }
         Commands::Workspaces(variants) => {
-            WorkspacesCli::run_match(variants, &mut workspace_settings)
+            WorkspacesCommand::cli_match(variants, &mut workspace_settings)
         }
     }
 

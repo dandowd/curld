@@ -91,6 +91,22 @@ impl<'a> WorkspacesManager<'a> {
             .collect()
     }
 
+    pub fn set_variable(&mut self, key: &str, value: &str) {
+        let mut workspace = self.get_current_workspace().clone();
+
+        workspace
+            .variables
+            .insert(key.to_string(), value.to_string());
+
+        self.workspace_settings
+            .workspaces
+            .insert(workspace.name.clone(), workspace);
+
+        self.stored_settings
+            .borrow_mut()
+            .insert_module(WORKSPACE_MODULE, &self.workspace_settings);
+    }
+
     pub fn get_workspace_mutator(&self) -> WorkspaceMutator {
         WorkspaceMutator::new(self.get_current_workspace())
     }

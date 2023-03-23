@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::variables::{parse, Extractor, Inserter};
+use crate::variables::{parse, Inserter};
 
 use super::settings::Workspace;
 
@@ -19,12 +19,6 @@ impl WorkspaceMutator {
     }
 }
 
-impl Extractor for WorkspaceMutator {
-    fn extract(&self, template: &str) -> Vec<String> {
-        parse::extract_variable_names(template, OPENING, CLOSING)
-    }
-}
-
 impl Inserter for WorkspaceMutator {
     fn insert(&self, template: &str, _value_map: &HashMap<String, String>) -> String {
         parse::insert_variable_values(template, &self.value_map, OPENING, CLOSING)
@@ -36,30 +30,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_should_extract_keys() {
+    fn inserter_should_insert_values_for_workspace() {
         let workspace = Workspace {
-            name: "test".to_owned(),
-            variables: HashMap::new(),
-            commands: Vec::new(),
+            name: "test".to_string(),
+            variables: vec![("key".to_string(), "value".to_string())]
+                .into_iter()
+                .collect(),
+            commands: vec![],
         };
-
         let mutator = WorkspaceMutator::new(&workspace);
-        let keys = mutator.extract("$w{key} $w{key2}");
 
-        assert_eq!(keys, vec!["key".to_owned(), "key2".to_owned()]);
-    }
+        let result = mutator.insert("test $w{key}", &HashMap::new());
 
-    #[test]
-    fn it_should_not_extract_other_templates() {
-        let workspace = Workspace {
-            name: "test".to_owned(),
-            variables: HashMap::new(),
-            commands: Vec::new(),
-        };
-
-        let mutator = WorkspaceMutator::new(&workspace);
-        let keys = mutator.extract("$w{key} ${key2}");
-
-        assert_eq!(keys, vec!["key".to_owned()]);
+        assert_eq!("test value", result);
     }
 }

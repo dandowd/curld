@@ -7,7 +7,7 @@ pub enum WorkspacesCommand {
     List,
     Create { name: String },
     Use { name: String },
-    AddVariable { key: String, value: String },
+    SetVariable { key: String, value: String },
 }
 
 impl WorkspacesCommand {
@@ -25,9 +25,9 @@ impl WorkspacesCommand {
                 workspaces_manager.change_workspace(&name);
                 IO::output(&format!("Workspace changed to {}", name));
             }
-            WorkspacesCommand::AddVariable { key, value } => {
+            WorkspacesCommand::SetVariable { key, value } => {
                 workspaces_manager.set_variable(key, value);
-                IO::output(&format!("Variable added: {}={}", key, value));
+                IO::output(&format!("Variable set: {}={}", key, value));
             }
         }
     }

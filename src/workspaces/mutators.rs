@@ -4,7 +4,7 @@ use crate::variables::{parse, Inserter};
 
 use super::settings::Workspace;
 
-static OPENING: &str = "$w{";
+static OPENING: &str = "w{";
 static CLOSING: &str = "}";
 
 pub struct WorkspaceMutator {
@@ -40,7 +40,7 @@ mod tests {
         };
         let mutator = WorkspaceMutator::new(&workspace);
 
-        let result = mutator.insert("test $w{key}", &HashMap::new());
+        let result = mutator.insert("test w{key}", &HashMap::new());
 
         assert_eq!("test value", result);
     }

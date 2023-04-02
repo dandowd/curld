@@ -43,30 +43,30 @@ impl RunCommand {
             RunCommand::Run(input) => {
                 let RunInput { user_args, id } = input;
 
-                let extracted_keys = variables_builder.extract_keys(user_args);
+                let extracted_keys = variables_builder.extract(user_args);
 
-                let user_values = RunCommand::prompt_for_templates(&extracted_keys);
+                let user_values = RunCommand::prompt_for_variables(&extracted_keys);
 
                 let curld_cmd = CurldCommand::new(user_args.to_owned(), user_values);
 
-                let runnable_cmd = variables_builder.cmd(&curld_cmd);
-                let curl_output = run_with_args(runnable_cmd);
+                let runnable_cmd = variables_builder.insert(&curld_cmd);
+                let cmd_output = run_with_args(runnable_cmd);
 
                 if let Some(id) = id {
                     run_settings.add_saved(id.to_owned(), curld_cmd.to_owned());
                 }
 
                 run_settings.insert_history(curld_cmd);
-                IO::output(&curl_output)
+                IO::output(&cmd_output)
             }
             RunCommand::RunSaved { id } => {
                 let curld_cmd = run_settings
                     .get_saved(id)
                     .expect("Could not find saved command");
 
-                variables_builder.extract_keys(&curld_cmd.user_args);
+                variables_builder.extract(&curld_cmd.user_args);
 
-                let curl_output = run_with_args(variables_builder.cmd(curld_cmd));
+                let curl_output = run_with_args(variables_builder.insert(curld_cmd));
 
                 IO::output(&curl_output)
             }
@@ -80,7 +80,7 @@ impl RunCommand {
                     let cmd = run_settings.get_history_entry(index);
                     match cmd {
                         Some(args) => {
-                            let output = run_with_args(variables_builder.cmd(args));
+                            let output = run_with_args(variables_builder.insert(args));
                             IO::output(&output);
                         }
                         None => IO::output(&index.to_string()),
@@ -96,7 +96,7 @@ impl RunCommand {
         }
     }
 
-    fn prompt_for_templates(template_keys: &Vec<String>) -> HashMap<String, String> {
+    fn prompt_for_variables(template_keys: &Vec<String>) -> HashMap<String, String> {
         let mut template_map: HashMap<String, String> = HashMap::new();
         RunCommand::loop_prompt(template_keys, &mut template_map);
 

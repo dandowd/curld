@@ -4,7 +4,7 @@ use crate::variables::{parse, Extractor, Inserter};
 
 pub struct RunMutators {}
 
-static OPENING: &str = "{";
+static OPENING: &str = "r{";
 static CLOSING: &str = "}";
 
 impl Inserter for RunMutators {

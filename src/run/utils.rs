@@ -1,7 +1,7 @@
 use std::process::Command;
 
-pub fn run_with_args(curl_args: Vec<String>) -> String {
-    let output = Command::new("curl").args(curl_args).output();
+pub fn run_with_args(args: Vec<String>) -> String {
+    let output = Command::new("curl").args(args).output();
     match output {
         Ok(cmd_out) => {
             if !cmd_out.stdout.is_empty() {

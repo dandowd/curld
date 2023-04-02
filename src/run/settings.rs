@@ -84,7 +84,7 @@ impl<'a> RunManager<'a> {
         let settings: RunSettings = stored_settings
             .borrow_mut()
             .get_module(RUN_MODULE)
-            .unwrap_or_default();
+            .unwrap_or_else(RunSettings::default);
 
         Self {
             parent: stored_settings,
@@ -94,16 +94,11 @@ impl<'a> RunManager<'a> {
 }
 
 impl RunSettings {
+    // I'm not sure how to call default and then override the history_len when implmenting the Default trait
     pub fn default() -> Self {
         Self {
             history_len: 10,
             ..Default::default()
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    pub fn should_return_history_list() {}
 }

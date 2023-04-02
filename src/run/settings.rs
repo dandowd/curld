@@ -84,7 +84,7 @@ impl<'a> RunManager<'a> {
         let settings: RunSettings = stored_settings
             .borrow_mut()
             .get_module(RUN_MODULE)
-            .unwrap_or_else(RunSettings::default);
+            .unwrap_or_default();
 
         Self {
             parent: stored_settings,

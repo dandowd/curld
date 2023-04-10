@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use clap::Parser;
 
 use crate::{
+    command::settings::CommandManager,
     run::{cli::RunCommand, settings::RunManager},
     settings::{file::FileStorage, global_settings::GlobalSettings},
     variables::builder::VariablesBuilder,
@@ -28,6 +29,8 @@ pub fn run() {
     let input = Args::parse();
     let global_settings = RefCell::new(GlobalSettings::new(FileStorage::new(None)));
     let mut variable_builder = VariablesBuilder::new();
+
+    let mut command_settings = CommandManager::new(&global_settings);
 
     let mut workspace_settings = WorkspacesManager::new(&global_settings);
     let workspace_mutator = workspace_settings.get_workspace_mutator();

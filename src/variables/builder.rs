@@ -16,7 +16,7 @@ impl<'a> VariablesBuilder<'a> {
         }
     }
 
-    pub fn extract_keys(&mut self, user_args: &Vec<String>) -> Vec<String> {
+    pub fn extract(&mut self, user_args: &Vec<String>) -> Vec<String> {
         user_args
             .iter()
             .flat_map(|input| {
@@ -28,7 +28,7 @@ impl<'a> VariablesBuilder<'a> {
             .collect()
     }
 
-    pub fn cmd(&self, curld: &CurldCommand) -> Vec<String> {
+    pub fn insert(&self, curld: &CurldCommand) -> Vec<String> {
         curld
             .user_args
             .iter()
@@ -91,7 +91,7 @@ mod tests {
         builder.add_extractor(&mock_extractor);
 
         let user_args = vec!["{{key}}".to_string(), "{{value}}".to_string()];
-        let keys = builder.extract_keys(&user_args);
+        let keys = builder.extract(&user_args);
 
         assert_eq!(keys, vec!["key".to_string(), "value".to_string(),]);
     }
@@ -108,7 +108,7 @@ mod tests {
             value_map: HashMap::new(),
         };
 
-        let cmd = builder.cmd(&curld);
+        let cmd = builder.insert(&curld);
 
         assert_eq!(cmd, vec!["replaced".to_string(), "replaced".to_string()]);
     }
